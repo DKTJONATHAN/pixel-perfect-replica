@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CheckCheck, Save } from "lucide-react";
 import { toast } from "sonner";
-import { Badge, Button, Card, Select } from "@/components/UI";
+import { Badge, Button, Card, Input, Select } from "@/components/UI";
 import { useSchool } from "@/context/SchoolProvider";
 import { fullName, prettyDate } from "@/lib/format";
 import { getSupabase } from "@/lib/supabase";
@@ -117,9 +117,7 @@ export function AttendanceRegister() {
           </label>
           <label className="space-y-1 text-sm">
             <span className="font-medium">Date</span>
-            <Select value={date} onChange={(e) => setDate(e.target.value)} asChild={false}>
-              <option value={date}>{prettyDate(date)}</option>
-            </Select>
+            <Input type="date" value={date} max={today()} onChange={(e) => setDate(e.target.value)} />
           </label>
           <label className="space-y-1 text-sm">
             <span className="font-medium">Quick action</span>
