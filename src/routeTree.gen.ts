@@ -10,6 +10,8 @@ import { Route as LoginStaffRouteImport } from './routes/login.staff'
 import { Route as LoginAdminRouteImport } from './routes/login.admin'
 import { Route as LoginParentRouteImport } from './routes/login.parent'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as StudentIndexRouteImport } from './routes/student/index'
 import { Route as StaffIndexRouteImport } from './routes/staff/index'
 import { Route as StaffSectionRouteImport } from './routes/staff/$section'
@@ -19,101 +21,24 @@ import { Route as AdminSectionRouteImport } from './routes/admin/$section'
 import { Route as AdminRegisterRouteImport } from './routes/admin/register'
 import { Route as ParentIndexRouteImport } from './routes/parent/index'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-
-const LoginIndexRoute = LoginIndexRouteImport.update({
-  id: '/login/',
-  path: '/',
-  getParentRoute: () => LoginRoute,
-} as any)
-
-const LoginStudentRoute = LoginStudentRouteImport.update({
-  id: '/login/student',
-  path: '/student',
-  getParentRoute: () => LoginRoute,
-} as any)
-
-const LoginStaffRoute = LoginStaffRouteImport.update({
-  id: '/login/staff',
-  path: '/staff',
-  getParentRoute: () => LoginRoute,
-} as any)
-
-const LoginAdminRoute = LoginAdminRouteImport.update({
-  id: '/login/admin',
-  path: '/admin',
-  getParentRoute: () => LoginRoute,
-} as any)
-
-const LoginParentRoute = LoginParentRouteImport.update({
-  id: '/login/parent',
-  path: '/parent',
-  getParentRoute: () => LoginRoute,
-} as any)
-
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-
-const StudentIndexRoute = StudentIndexRouteImport.update({
-  id: '/student/',
-  path: '/student/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-
-const StaffIndexRoute = StaffIndexRouteImport.update({
-  id: '/staff/',
-  path: '/staff/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-
-const StaffMarksRoute = StaffMarksRouteImport.update({
-  id: '/staff/marks',
-  path: '/staff/marks',
-  getParentRoute: () => rootRouteImport,
-} as any)
-
-const StaffSectionRoute = StaffSectionRouteImport.update({
-  id: '/staff/$section',
-  path: '/staff/$section',
-  getParentRoute: () => rootRouteImport,
-} as any)
-
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/admin/',
-  path: '/admin/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-
-const AdminRegisterRoute = AdminRegisterRouteImport.update({
-  id: '/admin/register',
-  path: '/admin/register',
-  getParentRoute: () => rootRouteImport,
-} as any)
-
-const AdminSectionRoute = AdminSectionRouteImport.update({
-  id: '/admin/$section',
-  path: '/admin/$section',
-  getParentRoute: () => rootRouteImport,
-} as any)
-
-const ParentIndexRoute = ParentIndexRouteImport.update({
-  id: '/parent/',
-  path: '/parent/',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const IndexRoute = IndexRouteImport.update({ id: '/', path: '/', getParentRoute: () => rootRouteImport } as any)
+const LoginRoute = LoginRouteImport.update({ id: '/login', path: '/login', getParentRoute: () => rootRouteImport } as any)
+const LoginIndexRoute = LoginIndexRouteImport.update({ id: '/login/', path: '/', getParentRoute: () => LoginRoute } as any)
+const LoginStudentRoute = LoginStudentRouteImport.update({ id: '/login/student', path: '/student', getParentRoute: () => LoginRoute } as any)
+const LoginStaffRoute = LoginStaffRouteImport.update({ id: '/login/staff', path: '/staff', getParentRoute: () => LoginRoute } as any)
+const LoginAdminRoute = LoginAdminRouteImport.update({ id: '/login/admin', path: '/admin', getParentRoute: () => LoginRoute } as any)
+const LoginParentRoute = LoginParentRouteImport.update({ id: '/login/parent', path: '/parent', getParentRoute: () => LoginRoute } as any)
+const SignupRoute = SignupRouteImport.update({ id: '/signup', path: '/signup', getParentRoute: () => rootRouteImport } as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({ id: '/forgot-password', path: '/forgot-password', getParentRoute: () => rootRouteImport } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({ id: '/reset-password', path: '/reset-password', getParentRoute: () => rootRouteImport } as any)
+const StudentIndexRoute = StudentIndexRouteImport.update({ id: '/student/', path: '/student/', getParentRoute: () => rootRouteImport } as any)
+const StaffIndexRoute = StaffIndexRouteImport.update({ id: '/staff/', path: '/staff/', getParentRoute: () => rootRouteImport } as any)
+const StaffMarksRoute = StaffMarksRouteImport.update({ id: '/staff/marks', path: '/staff/marks', getParentRoute: () => rootRouteImport } as any)
+const StaffSectionRoute = StaffSectionRouteImport.update({ id: '/staff/$section', path: '/staff/$section', getParentRoute: () => rootRouteImport } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({ id: '/admin/', path: '/admin/', getParentRoute: () => rootRouteImport } as any)
+const AdminRegisterRoute = AdminRegisterRouteImport.update({ id: '/admin/register', path: '/admin/register', getParentRoute: () => rootRouteImport } as any)
+const AdminSectionRoute = AdminSectionRouteImport.update({ id: '/admin/$section', path: '/admin/$section', getParentRoute: () => rootRouteImport } as any)
+const ParentIndexRoute = ParentIndexRouteImport.update({ id: '/parent/', path: '/parent/', getParentRoute: () => rootRouteImport } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -124,6 +49,8 @@ export interface FileRoutesByFullPath {
   '/login/admin': typeof LoginAdminRoute
   '/login/parent': typeof LoginParentRoute
   '/signup': typeof SignupRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/student/': typeof StudentIndexRoute
   '/staff/': typeof StaffIndexRoute
   '/staff/marks': typeof StaffMarksRoute
@@ -141,6 +68,8 @@ export interface FileRoutesByTo {
   '/login/admin': typeof LoginAdminRoute
   '/login/parent': typeof LoginParentRoute
   '/signup': typeof SignupRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/student': typeof StudentIndexRoute
   '/staff': typeof StaffIndexRoute
   '/staff/marks': typeof StaffMarksRoute
@@ -160,6 +89,8 @@ export interface FileRoutesById {
   '/login/admin': typeof LoginAdminRoute
   '/login/parent': typeof LoginParentRoute
   '/signup': typeof SignupRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/student/': typeof StudentIndexRoute
   '/staff/': typeof StaffIndexRoute
   '/staff/marks': typeof StaffMarksRoute
@@ -181,6 +112,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRouteWithChildren
   SignupRoute: typeof SignupRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   StudentIndexRoute: typeof StudentIndexRoute
   StaffIndexRoute: typeof StaffIndexRoute
   StaffMarksRoute: typeof StaffMarksRoute
@@ -201,8 +134,11 @@ declare module '@tanstack/react-router' {
     '/login/admin': { id: '/login/admin'; path: '/admin'; fullPath: '/login/admin'; preLoaderRoute: typeof LoginAdminRouteImport; parentRoute: typeof LoginRoute }
     '/login/parent': { id: '/login/parent'; path: '/parent'; fullPath: '/login/parent'; preLoaderRoute: typeof LoginParentRouteImport; parentRoute: typeof LoginRoute }
     '/signup': { id: '/signup'; path: '/signup'; fullPath: '/signup'; preLoaderRoute: typeof SignupRouteImport; parentRoute: typeof rootRouteImport }
+    '/forgot-password': { id: '/forgot-password'; path: '/forgot-password'; fullPath: '/forgot-password'; preLoaderRoute: typeof ForgotPasswordRouteImport; parentRoute: typeof rootRouteImport }
+    '/reset-password': { id: '/reset-password'; path: '/reset-password'; fullPath: '/reset-password'; preLoaderRoute: typeof ResetPasswordRouteImport; parentRoute: typeof rootRouteImport }
     '/student/': { id: '/student/'; path: '/student'; fullPath: '/student/'; preLoaderRoute: typeof StudentIndexRouteImport; parentRoute: typeof rootRouteImport }
     '/staff/': { id: '/staff/'; path: '/staff'; fullPath: '/staff/'; preLoaderRoute: typeof StaffIndexRouteImport; parentRoute: typeof rootRouteImport }
+    '/staff/marks': { id: '/staff/marks'; path: '/staff/marks'; fullPath: '/staff/marks'; preLoaderRoute: typeof StaffIndexRouteImport; parentRoute: typeof rootRouteImport }
     '/staff/marks': { id: '/staff/marks'; path: '/staff/marks'; fullPath: '/staff/marks'; preLoaderRoute: typeof StaffMarksRouteImport; parentRoute: typeof rootRouteImport }
     '/staff/$section': { id: '/staff/$section'; path: '/staff/$section'; fullPath: '/staff/$section'; preLoaderRoute: typeof StaffSectionRouteImport; parentRoute: typeof rootRouteImport }
     '/admin/': { id: '/admin/'; path: '/admin'; fullPath: '/admin/'; preLoaderRoute: typeof AdminIndexRouteImport; parentRoute: typeof rootRouteImport }
@@ -219,21 +155,15 @@ interface LoginRouteChildren {
   LoginAdminRoute: typeof LoginAdminRoute
   LoginParentRoute: typeof LoginParentRoute
 }
-
-const LoginRouteChildren: LoginRouteChildren = {
-  LoginIndexRoute,
-  LoginStudentRoute,
-  LoginStaffRoute,
-  LoginAdminRoute,
-  LoginParentRoute,
-}
-
+const LoginRouteChildren: LoginRouteChildren = { LoginIndexRoute, LoginStudentRoute, LoginStaffRoute, LoginAdminRoute, LoginParentRoute }
 const LoginRouteWithChildren = LoginRoute._addFileChildren(LoginRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute,
   LoginRoute: LoginRouteWithChildren,
   SignupRoute,
+  ForgotPasswordRoute,
+  ResetPasswordRoute,
   StudentIndexRoute,
   StaffIndexRoute,
   StaffMarksRoute,
@@ -244,9 +174,7 @@ const rootRouteChildren: RootRouteChildren = {
   ParentIndexRoute,
 }
 
-export const routeTree = rootRouteImport
-  ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+export const routeTree = rootRouteImport._addFileChildren(rootRouteChildren)._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from './router.tsx'
 import type { startInstance } from './start.ts'
