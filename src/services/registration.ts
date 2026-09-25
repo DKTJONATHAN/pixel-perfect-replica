@@ -1,31 +1,11 @@
 import { getSupabase } from "@/lib/supabase";
+import { registerAccount } from "@/lib/customAuth";
 import type {
   Gender,
   StaffCategory,
   SupportDepartment,
   TeacherEmployment,
 } from "@/lib/types";
-
-/**
- * Synthetic auth emails — must look like real addresses (Supabase rejects .internal).
- * Users never type these; they sign in with staff no. / admission no. / phone.
- * Disable "Confirm email" in Supabase Auth for these to work without a mailbox.
- */
-export function staffAuthEmail(staffNo: string) {
-  const safe = staffNo.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-  return `staff.${safe}@auth.kidright.ac.ke`;
-}
-
-export function studentAuthEmail(admissionNo: string) {
-  const safe = admissionNo.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase().replace(/-+/g, "-");
-  return `student.${safe}@auth.kidright.ac.ke`;
-}
-
-export function parentAuthEmail(phoneOrEmail: string) {
-  if (phoneOrEmail.includes("@")) return phoneOrEmail.trim().toLowerCase();
-  const digits = phoneOrEmail.replace(/\D/g, "");
-  return `parent.${digits}@auth.kidright.ac.ke`;
-}
 
 export async function allocateStaffNumber(): Promise<string> {
   const sb = getSupabase();
@@ -86,22 +66,9 @@ export interface RegisterParentInput {
   relationship?: string;
 }
 
-async function createAuthUser(email: string, password: string, meta: Record<string, string>) {
-  const sb = getSupabase();
-  const { data, error } = await sb.auth.signUp({
-    email,
-    password,
-    options: { data: meta },
-  });
-  if (error) throw new Error(error.message);
-  if (!data.user) throw new Error("Auth user was not created");
-  return data.user;
-}
-
 export async function registerTeacher(input: RegisterTeacherInput) {
   const sb = getSupabase();
   const staffNo = await allocateStaffNumber();
-  const loginEmail = staffAuthEmail(staffNo);
 
   const employment: TeacherEmployment = input.tscRegistered ? "TSC" : input.teacherEmployment;
 
@@ -112,7 +79,7 @@ export async function registerTeacher(input: RegisterTeacherInput) {
       full_name: input.fullName,
       gender: input.gender,
       phone: input.phone,
-      email: input.email ?? loginEmail,
+      email: input.email ?? null,
       national_id: input.nationalId ?? null,
       role: "Teacher",
       department: "Teaching",
@@ -125,40 +92,36 @@ export async function registerTeacher(input: RegisterTeacherInput) {
       date_joined: input.dateJoined ?? new Date().toISOString().slice(0, 10),
       salary: 0,
       status: "Active",
-      login_email: loginEmail,
     })
     .select("*")
     .single();
 
   if (staffErr) throw new Error(staffErr.message);
 
-  const user = await createAuthUser(loginEmail, input.password, {
-    full_name: input.fullName,
+  const acc = await registerAccount({
+    loginId: staffNo,
+    password: input.password,
+    fullName: input.fullName,
     role: "teacher",
-    login_id: staffNo,
   });
+  if (!acc.ok) throw new Error(acc.error);
 
-  await sb.from("profiles").upsert({
-    id: user.id,
-    email: loginEmail,
-    full_name: input.fullName,
-    role: "teacher",
-    staff_id: staffRow.id,
-    login_id: staffNo,
-  });
+  await sb
+    .from("profiles")
+    .update({ staff_id: staffRow.id })
+    .eq("id", acc.profile.id);
 
   await sb.from("activity_log").insert({
     actor: "Registrar",
     message: `Registered teacher ${input.fullName} (staff no. ${staffNo})`,
   });
 
-  return { staffNo, staffId: staffRow.id as string, loginEmail };
+  return { staffNo, staffId: staffRow.id as string };
 }
 
 export async function registerSupportStaff(input: RegisterSupportInput) {
   const sb = getSupabase();
   const staffNo = await allocateStaffNumber();
-  const loginEmail = staffAuthEmail(staffNo);
 
   const { data: staffRow, error: staffErr } = await sb
     .from("staff")
@@ -167,7 +130,7 @@ export async function registerSupportStaff(input: RegisterSupportInput) {
       full_name: input.fullName,
       gender: input.gender,
       phone: input.phone,
-      email: input.email ?? loginEmail,
+      email: input.email ?? null,
       national_id: input.nationalId ?? null,
       role: input.roleLabel,
       department: input.supportDepartment,
@@ -179,39 +142,32 @@ export async function registerSupportStaff(input: RegisterSupportInput) {
       date_joined: input.dateJoined ?? new Date().toISOString().slice(0, 10),
       salary: 0,
       status: "Active",
-      login_email: loginEmail,
     })
     .select("*")
     .single();
 
   if (staffErr) throw new Error(staffErr.message);
 
-  const user = await createAuthUser(loginEmail, input.password, {
-    full_name: input.fullName,
+  const acc = await registerAccount({
+    loginId: staffNo,
+    password: input.password,
+    fullName: input.fullName,
     role: "staff",
-    login_id: staffNo,
   });
+  if (!acc.ok) throw new Error(acc.error);
 
-  await sb.from("profiles").upsert({
-    id: user.id,
-    email: loginEmail,
-    full_name: input.fullName,
-    role: "staff",
-    staff_id: staffRow.id,
-    login_id: staffNo,
-  });
+  await sb.from("profiles").update({ staff_id: staffRow.id }).eq("id", acc.profile.id);
 
   await sb.from("activity_log").insert({
     actor: "Registrar",
     message: `Registered support staff ${input.fullName} (${input.supportDepartment}, no. ${staffNo})`,
   });
 
-  return { staffNo, staffId: staffRow.id as string, loginEmail };
+  return { staffNo, staffId: staffRow.id as string };
 }
 
 export async function registerStudent(input: RegisterStudentInput) {
   const sb = getSupabase();
-  const loginEmail = studentAuthEmail(input.admissionNo);
 
   const { data: student, error: stErr } = await sb
     .from("students")
@@ -234,57 +190,46 @@ export async function registerStudent(input: RegisterStudentInput) {
 
   if (stErr) throw new Error(stErr.message);
 
-  const user = await createAuthUser(loginEmail, input.password, {
-    full_name: `${input.firstName} ${input.lastName}`,
+  const acc = await registerAccount({
+    loginId: input.admissionNo,
+    password: input.password,
+    fullName: `${input.firstName} ${input.lastName}`,
     role: "student",
-    login_id: input.admissionNo,
   });
+  if (!acc.ok) throw new Error(acc.error);
 
-  await sb.from("profiles").upsert({
-    id: user.id,
-    email: loginEmail,
-    full_name: `${input.firstName} ${input.lastName}`,
-    role: "student",
-    student_id: student.id,
-    login_id: input.admissionNo,
-  });
+  await sb.from("profiles").update({ student_id: student.id }).eq("id", acc.profile.id);
 
   await sb.from("activity_log").insert({
     actor: "Registrar",
     message: `Admitted student ${input.firstName} ${input.lastName} (${input.admissionNo})`,
   });
 
-  return { admissionNo: input.admissionNo, studentId: student.id as string, loginEmail };
+  return { admissionNo: input.admissionNo, studentId: student.id as string };
 }
 
 export async function registerParent(input: RegisterParentInput) {
   const sb = getSupabase();
-  const loginEmail = parentAuthEmail(input.email || input.phone);
+  const loginId = input.phone.replace(/\D/g, "") || input.phone;
 
-  const user = await createAuthUser(loginEmail, input.password, {
-    full_name: input.fullName,
+  const acc = await registerAccount({
+    loginId,
+    password: input.password,
+    fullName: input.fullName,
     role: "parent",
-    login_id: input.phone.replace(/\D/g, ""),
+    parentPhone: input.phone,
   });
-
-  await sb.from("profiles").upsert({
-    id: user.id,
-    email: loginEmail,
-    full_name: input.fullName,
-    role: "parent",
-    login_id: input.phone.replace(/\D/g, ""),
-    parent_phone: input.phone,
-  });
+  if (!acc.ok) throw new Error(acc.error);
 
   if (input.studentIds.length) {
     await sb.from("parent_students").insert(
       input.studentIds.map((student_id) => ({
-        parent_profile_id: user.id,
+        parent_profile_id: acc.profile.id,
         student_id,
         relationship: input.relationship ?? "Guardian",
       })),
     );
   }
 
-  return { parentId: user.id, loginEmail };
+  return { parentId: acc.profile.id };
 }
