@@ -9,7 +9,8 @@
     "build:dev": "vite build --mode development",
     "preview": "npm run build && bunx wrangler pages dev dist",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "deploy": "npx wrangler pages deploy dist"
   },
   "overrides": {
     "rolldown": "1.2.1"
