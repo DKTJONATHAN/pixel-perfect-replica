@@ -27,7 +27,8 @@ export type Permission =
   | "classes.manage"
   | "leave.approve"
   | "payroll.view"
-  | "settings.manage";
+  | "settings.manage"
+  | "register.manage";
 
 const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   admin: [
@@ -42,17 +43,27 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "leave.approve",
     "payroll.view",
     "settings.manage",
+    "register.manage",
   ],
-  staff: [
+  registrar: [
     "students.view",
     "students.edit",
+    "staff.view",
+    "staff.edit",
+    "classes.manage",
+    "register.manage",
+    "fees.manage",
+  ],
+  teacher: [
+    "students.view",
     "attendance.mark",
     "grades.edit",
     "staff.view",
-    "fees.manage",
     "classes.manage",
   ],
+  staff: ["students.view", "staff.view"],
   student: ["students.view"],
+  parent: ["students.view"],
 };
 
 const EMPTY: SchoolData = {
@@ -154,7 +165,7 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
   }, [authReady, session?.user?.id, refresh]);
 
   const can = useCallback(
-    (permission: Permission) => (user ? ROLE_PERMISSIONS[user.role].includes(permission) : false),
+    (permission: Permission) => (user ? ROLE_PERMISSIONS[user.role]?.includes(permission) : false),
     [user],
   );
 
