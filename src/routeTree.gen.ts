@@ -7,7 +7,6 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as LoginStudentRouteImport } from './routes/login.student'
 import { Route as LoginStaffRouteImport } from './routes/login.staff'
 import { Route as LoginAdminRouteImport } from './routes/login.admin'
-import { Route as SignupRouteImport } from './routes/signup'
 import { Route as StudentIndexRouteImport } from './routes/student/index'
 import { Route as StaffIndexRouteImport } from './routes/staff/index'
 import { Route as StaffSectionRouteImport } from './routes/staff/$section'
@@ -19,7 +18,6 @@ const LoginRoute = LoginRouteImport.update({ id: '/login', path: '/login', getPa
 const LoginStudentRoute = LoginStudentRouteImport.update({ id: '/login/student', path: '/login/student', getParentRoute: () => rootRouteImport } as any)
 const LoginStaffRoute = LoginStaffRouteImport.update({ id: '/login/staff', path: '/login/staff', getParentRoute: () => rootRouteImport } as any)
 const LoginAdminRoute = LoginAdminRouteImport.update({ id: '/login/admin', path: '/login/admin', getParentRoute: () => rootRouteImport } as any)
-const SignupRoute = SignupRouteImport.update({ id: '/signup', path: '/signup', getParentRoute: () => rootRouteImport } as any)
 const StudentIndexRoute = StudentIndexRouteImport.update({ id: '/student/', path: '/student/', getParentRoute: () => rootRouteImport } as any)
 const StaffIndexRoute = StaffIndexRouteImport.update({ id: '/staff/', path: '/staff/', getParentRoute: () => rootRouteImport } as any)
 const StaffSectionRoute = StaffSectionRouteImport.update({ id: '/staff/$section', path: '/staff/$section', getParentRoute: () => rootRouteImport } as any)
@@ -32,8 +30,6 @@ export interface FileRoutesByFullPath {
   '/login/student': typeof LoginStudentRoute
   '/login/staff': typeof LoginStaffRoute
   '/login/admin': typeof LoginAdminRoute
-  '/signup': typeof SignupRoute
-  '/signup': typeof SignupRoute
   '/student/': typeof StudentIndexRoute
   '/staff/': typeof StaffIndexRoute
   '/staff/$section': typeof StaffSectionRoute
@@ -59,7 +55,6 @@ export interface FileRoutesById {
   '/login/student': typeof LoginStudentRoute
   '/login/staff': typeof LoginStaffRoute
   '/login/admin': typeof LoginAdminRoute
-  '/signup': typeof SignupRoute
   '/student/': typeof StudentIndexRoute
   '/staff/': typeof StaffIndexRoute
   '/staff/$section': typeof StaffSectionRoute
@@ -93,8 +88,7 @@ declare module '@tanstack/react-router' {
     '/login/student': { id: '/login/student'; path: '/login/student'; fullPath: '/login/student'; preLoaderRoute: typeof LoginStudentRouteImport; parentRoute: typeof rootRouteImport }
     '/login/staff': { id: '/login/staff'; path: '/login/staff'; fullPath: '/login/staff'; preLoaderRoute: typeof LoginStaffRouteImport; parentRoute: typeof rootRouteImport }
     '/login/admin': { id: '/login/admin'; path: '/login/admin'; fullPath: '/login/admin'; preLoaderRoute: typeof LoginAdminRouteImport; parentRoute: typeof rootRouteImport }
-    '/signup': { id: '/signup'; path: '/signup'; fullPath: '/signup'; preLoaderRoute: typeof SignupRouteImport; parentRoute: typeof rootRouteImport }
-    '/student/': { id: '/student/'; path: '/student'; fullPath: '/student/'; preLoaderRoute: typeof StudentIndexRouteImport; parentRoute: typeof rootRouteImport }
+      '/student/': { id: '/student/'; path: '/student'; fullPath: '/student/'; preLoaderRoute: typeof StudentIndexRouteImport; parentRoute: typeof rootRouteImport }
     '/staff/': { id: '/staff/'; path: '/staff'; fullPath: '/staff/'; preLoaderRoute: typeof StaffIndexRouteImport; parentRoute: typeof rootRouteImport }
     '/staff/$section': { id: '/staff/$section'; path: '/staff/$section'; fullPath: '/staff/$section'; preLoaderRoute: typeof StaffSectionRouteImport; parentRoute: typeof rootRouteImport }
     '/admin/': { id: '/admin/'; path: '/admin'; fullPath: '/admin/'; preLoaderRoute: typeof AdminIndexRouteImport; parentRoute: typeof rootRouteImport }
@@ -107,7 +101,6 @@ const rootRouteChildren: RootRouteChildren = {
   LoginStudentRoute,
   LoginStaffRoute,
   LoginAdminRoute,
-  SignupRoute,
   StudentIndexRoute,
   StaffIndexRoute,
   StaffSectionRoute,
