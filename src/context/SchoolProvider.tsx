@@ -1,6 +1,5 @@
 /**
- * Single source of truth for the app: session, theme and the whole school
- * database. Data is read/written through src/services/db.ts.
+ * School data from Supabase. Requires authenticated session for most tables.
  */
 import {
   createContext,
@@ -12,26 +11,10 @@ import {
   type ReactNode,
 } from "react";
 import { toast } from "sonner";
-import type { Activity, Database, Role, User } from "@/lib/types";
-import { loadDb, newId, resetDb, saveDb } from "@/services/db";
-
-const SESSION_KEY = "kidright.session.v1";
-const THEME_KEY = "kidright.theme.v1";
-
-interface SchoolContextValue {
-  ready: boolean;
-  db: Database;
-  user: User | null;
-  theme: "light" | "dark";
-  toggleTheme: () => void;
-  login: (email: string, password: string) => { ok: boolean; error?: string };
-  loginAs: (role: Role) => void;
-  logout: () => void;
-  /** Mutate the database immutably; optionally log an activity entry. */
-  update: (fn: (db: Database) => Database, activity?: string) => void;
-  reseed: () => void;
-  can: (permission: Permission) => boolean;
-}
+import { useAuth } from "@/context/AuthProvider";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import type { Role, SchoolData } from "@/lib/types";
+import { fetchSchoolData, fetchSchoolSettings } from "@/services/school";
 
 export type Permission =
   | "students.view"
@@ -48,35 +31,81 @@ export type Permission =
 
 const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   admin: [
-    "students.view", "students.edit", "staff.view", "staff.edit", "attendance.mark",
-    "grades.edit", "fees.manage", "classes.manage", "leave.approve", "payroll.view",
+    "students.view",
+    "students.edit",
+    "staff.view",
+    "staff.edit",
+    "attendance.mark",
+    "grades.edit",
+    "fees.manage",
+    "classes.manage",
+    "leave.approve",
+    "payroll.view",
     "settings.manage",
   ],
-  teacher: ["students.view", "attendance.mark", "grades.edit", "staff.view"],
-  registrar: ["students.view", "students.edit", "fees.manage", "classes.manage", "staff.view"],
+  staff: [
+    "students.view",
+    "students.edit",
+    "attendance.mark",
+    "grades.edit",
+    "staff.view",
+    "fees.manage",
+    "classes.manage",
+  ],
+  student: ["students.view"],
 };
 
+const EMPTY: SchoolData = {
+  classes: [],
+  students: [],
+  staff: [],
+  attendance: [],
+  staffAttendance: [],
+  grades: [],
+  payments: [],
+  leave: [],
+  activity: [],
+  settings: {
+    schoolName: "KidRight Academy",
+    motto: "Learn. Grow. Shine.",
+    address: "12 Riverside Lane, Nairobi",
+    phone: "+254 700 123 456",
+    email: "office@kidright.ac.ke",
+    academicYear: "2026",
+    currentTerm: "Term 3",
+    currency: "KES",
+    annualLeaveDays: 21,
+    about: "",
+    vision: "",
+    mission: "",
+  },
+};
+
+interface SchoolContextValue {
+  ready: boolean;
+  db: SchoolData;
+  refresh: () => Promise<void>;
+  can: (permission: Permission) => boolean;
+  theme: "light" | "dark";
+  toggleTheme: () => void;
+}
+
 const SchoolContext = createContext<SchoolContextValue | null>(null);
+const THEME_KEY = "kidright.theme.v1";
 
 export function SchoolProvider({ children }: { children: ReactNode }) {
-  const [db, setDb] = useState<Database>(() => loadDb());
-  const [user, setUser] = useState<User | null>(null);
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const { ready: authReady, user, session } = useAuth();
+  const [db, setDb] = useState<SchoolData>(EMPTY);
   const [ready, setReady] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
 
-  // Hydrate from storage after mount so server and client markup match.
   useEffect(() => {
-    const fresh = loadDb();
-    setDb(fresh);
     try {
-      const raw = window.localStorage.getItem(SESSION_KEY);
-      if (raw) setUser(JSON.parse(raw) as User);
-      const savedTheme = window.localStorage.getItem(THEME_KEY);
-      if (savedTheme === "dark") setTheme("dark");
+      const saved = window.localStorage.getItem(THEME_KEY);
+      if (saved === "dark") setTheme("dark");
     } catch {
-      // Ignore unreadable storage.
+      /* ignore */
     }
-    setReady(true);
   }, []);
 
   useEffect(() => {
@@ -96,60 +125,33 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const update = useCallback((fn: (current: Database) => Database, activity?: string) => {
-    setDb((current) => {
-      let next = fn(current);
-      if (activity) {
-        const entry: Activity = {
-          id: newId("a"),
-          at: new Date().toISOString(),
-          actor: user?.name ?? "System",
-          message: activity,
-        };
-        next = { ...next, activity: [entry, ...next.activity].slice(0, 60) };
+  const refresh = useCallback(async () => {
+    if (!isSupabaseConfigured()) {
+      setDb(EMPTY);
+      setReady(true);
+      return;
+    }
+    try {
+      if (session) {
+        const data = await fetchSchoolData();
+        setDb(data);
+      } else {
+        const settings = await fetchSchoolSettings();
+        setDb({ ...EMPTY, settings });
       }
-      saveDb(next);
-      return next;
-    });
-  }, [user?.name]);
-
-  const login = useCallback<SchoolContextValue["login"]>((email, password) => {
-    const found = loadDb().users.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
-    if (!found) return { ok: false, error: "No account found with that email address." };
-    if (password.length < 4) return { ok: false, error: "Password must be at least 4 characters." };
-    setUser(found);
-    try {
-      window.localStorage.setItem(SESSION_KEY, JSON.stringify(found));
-    } catch {
-      /* ignore */
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not load school data from Supabase");
+    } finally {
+      setReady(true);
     }
-    return { ok: true };
-  }, []);
+  }, [session]);
 
-  const loginAs = useCallback((role: Role) => {
-    const found = loadDb().users.find((u) => u.role === role);
-    if (!found) return;
-    setUser(found);
-    try {
-      window.localStorage.setItem(SESSION_KEY, JSON.stringify(found));
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  const logout = useCallback(() => {
-    setUser(null);
-    try {
-      window.localStorage.removeItem(SESSION_KEY);
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  const reseed = useCallback(() => {
-    setDb(resetDb());
-    toast.success("Sample data restored");
-  }, []);
+  useEffect(() => {
+    if (!authReady) return;
+    setReady(false);
+    void refresh();
+  }, [authReady, session?.user?.id, refresh]);
 
   const can = useCallback(
     (permission: Permission) => (user ? ROLE_PERMISSIONS[user.role].includes(permission) : false),
@@ -157,8 +159,8 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ ready, db, user, theme, toggleTheme, login, loginAs, logout, update, reseed, can }),
-    [ready, db, user, theme, toggleTheme, login, loginAs, logout, update, reseed, can],
+    () => ({ ready, db, refresh, can, theme, toggleTheme }),
+    [ready, db, refresh, can, theme, toggleTheme],
   );
 
   return <SchoolContext.Provider value={value}>{children}</SchoolContext.Provider>;

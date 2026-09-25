@@ -1,6 +1,6 @@
-// Domain types for the KidRight Academy school management system.
+// Domain types for KidRight Academy (mapped from Supabase rows).
 
-export type Role = "admin" | "teacher" | "registrar";
+export type Role = "admin" | "staff" | "student";
 
 export type StudentStatus = "Active" | "Transferred" | "Graduated" | "Suspended";
 export type StaffStatus = "Active" | "On Leave" | "Terminated";
@@ -20,13 +20,14 @@ export interface User {
   name: string;
   email: string;
   role: Role;
-  staffId?: string;
+  studentId?: string | null;
+  staffId?: string | null;
 }
 
 export interface SchoolClass {
   id: string;
-  name: string; // e.g. "Grade 4"
-  stream: string; // e.g. "Blue"
+  name: string;
+  stream: string;
   teacherId: string | null;
   feePerTerm: number;
 }
@@ -75,7 +76,7 @@ export interface Staff {
 
 export interface AttendanceRecord {
   id: string;
-  date: string; // yyyy-mm-dd
+  date: string;
   studentId: string;
   classId: string;
   status: AttendanceStatus;
@@ -91,9 +92,9 @@ export interface StaffAttendanceRecord {
 export interface GradeRecord {
   id: string;
   studentId: string;
-  term: string; // e.g. "Term 1"
+  term: string;
   subject: string;
-  score: number; // 0-100
+  score: number;
 }
 
 export interface Payment {
@@ -136,9 +137,12 @@ export interface Settings {
   currentTerm: string;
   currency: string;
   annualLeaveDays: number;
+  about: string;
+  vision: string;
+  mission: string;
 }
 
-export interface Database {
+export interface SchoolData {
   classes: SchoolClass[];
   students: Student[];
   staff: Staff[];
@@ -149,7 +153,6 @@ export interface Database {
   leave: LeaveRequest[];
   activity: Activity[];
   settings: Settings;
-  users: User[];
 }
 
 export const SUBJECTS = [
