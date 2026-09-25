@@ -1,104 +1,66 @@
 # KidRight Academy
 
-Production school management platform for **KidRight Academy** — public website plus Student, Staff, and Admin portals backed by **Supabase**.
+Production school platform: public site + Student, Staff/Teacher, Parent, and Admin/Registrar portals on **Supabase**.
 
-## Features
+## Portals & login
 
-- Public landing page (about, programs, contact, portal links)
-- **Student portal** — profile, grades, attendance, fee balance
-- **Staff portal** — classes, students, attendance, grades
-- **Admin portal** — full school ops (students, staff, fees, leave, payroll, settings)
-- Real authentication via Supabase Auth
-- Row Level Security on all tables
+| Portal | Path | Sign-in ID |
+|--------|------|------------|
+| Student | `/login/student` → `/student` | **Admission number** + password |
+| Staff / Teacher | `/login/staff` → `/staff` | **10-digit staff number** + password |
+| Parent | `/login/parent` → `/parent` | Phone or email + password |
+| Admin / Registrar | `/login/admin` → `/admin` | Email + password |
 
-## Setup
+Accounts are **created by the registrar** after employment or admission (not self-serve public sign-up).
 
-### 1. Supabase project
+## Registrar registration (`/admin/register`)
 
-1. Create a project at [supabase.com](https://supabase.com)
-2. Open **SQL Editor** and run the full script in [`supabase/schema.sql`](supabase/schema.sql)
-3. Under **Authentication → Providers**, ensure Email is enabled
-4. Copy **Project URL** and **anon public** key from **Project Settings → API**
+- **Teacher** — subject combination, TSC yes/no (TSC number or BOM/PTA), auto **10-digit unique staff number**
+- **Support staff** — department (Kitchen, Cleaning, Transport, Security, …), job title, staff number
+- **Student** — admission number, class/stream, guardian, password
+- **Parent** — phone/email, password, link to one or more students
 
-### 2. Environment
+## Teacher marks (`/staff/marks`)
 
-```bash
-cp .env.example .env.local
-```
+Enter scores per subject/class/term. The system calculates **totals, averages, letter grades** live. Students and parents see the same numbers in real time after save.
 
-Fill in:
+## Parent portal
 
-```
-VITE_SUPABASE_URL=https://xxxx.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJ...
-```
+- Subject breakdown, term total/average, class position
+- Fees paid vs arrears
+- **Export to Excel (CSV)** for performance and fee history
 
-Never commit `.env.local` or the **service_role** key.
+## Supabase setup
 
-### 3. Create users
-
-In Supabase **Authentication → Users**, create users (or use sign-up). Then set their role in `profiles`:
-
-```sql
--- After the user exists in auth.users / profiles:
-update public.profiles
-set role = 'admin', full_name = 'Robert Kimani'
-where email = 'admin@kidright.ac.ke';
-
-update public.profiles
-set role = 'staff', full_name = 'Grace Wanjiku'
-where email = 'teacher@kidright.ac.ke';
-
-update public.profiles
-set role = 'student', full_name = 'Amina Otieno'
-where email = 'student@kidright.ac.ke';
-```
-
-Link staff/student rows when ready:
+1. Run [`supabase/schema.sql`](supabase/schema.sql)
+2. Run [`supabase/migrations/002_registration_parents_grades.sql`](supabase/migrations/002_registration_parents_grades.sql)
+3. Copy `.env.example` → `.env.local` with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
+4. Create an initial **admin/registrar** user in Supabase Auth, then:
 
 ```sql
 update public.profiles
-set staff_id = (select id from public.staff where email = 'teacher@kidright.ac.ke' limit 1)
-where email = 'teacher@kidright.ac.ke';
-
-update public.profiles
-set student_id = (select id from public.students where admission_no = 'KRA/2026/0001' limit 1)
-where email = 'student@kidright.ac.ke';
+set role = 'registrar', full_name = 'School Registrar'
+where email = 'registrar@yourschool.ac.ke';
 ```
 
-### 4. Run locally
+5. Disable public sign-up in Supabase Auth settings if you only want registrar-created accounts (or keep sign-up restricted).
+
+### Auth email note
+
+Staff numbers and admission numbers map to internal emails (`{staffNo}@staff.kidright.internal`, etc.) so Supabase Auth can store passwords. Users only ever type their **staff number** or **admission number** on the login form.
+
+## Local run
 
 ```bash
-bun install   # or npm install
-bun run dev   # or npm run dev
+bun install
+bun run dev
 ```
 
-### 5. Deploy (Cloudflare)
+## Deploy
 
 ```bash
 bun run build
 bun run deploy
 ```
 
-Set the same `VITE_SUPABASE_*` variables in your Cloudflare project environment.
-
-## Routes
-
-| Path | Description |
-|------|-------------|
-| `/` | Public landing |
-| `/login` | Portal picker |
-| `/login/student` | Student sign-in |
-| `/login/staff` | Staff sign-in |
-| `/login/admin` | Admin sign-in |
-| `/student` | Student dashboard |
-| `/staff` | Staff dashboard |
-| `/admin` | Admin dashboard |
-| `/admin/students` etc. | Admin management sections |
-
-## Stack
-
-- TanStack Start + React 19 + Vite 8
-- Tailwind CSS 4
-- Supabase (Auth + Postgres + RLS)
-- Cloudflare Workers (Nitro `cloudflare_module`)
+Set the same `VITE_SUPABASE_*` variables in Cloudflare.
