@@ -11,7 +11,6 @@ import {
   Users,
 } from "lucide-react";
 import { useSchool } from "@/context/SchoolProvider";
-import { Button } from "@/components/UI";
 
 export const Route = createFileRoute("/")({ component: LandingPage });
 
@@ -49,10 +48,11 @@ function LandingPage() {
             </a>
           </nav>
           <div className="flex items-center gap-2">
-            <Link to="/login">
-              <Button variant="outline" size="sm">
-                Sign in
-              </Button>
+            <Link
+              to="/login"
+              className="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-card px-3 text-sm font-medium transition-colors hover:bg-muted"
+            >
+              Sign in
             </Link>
           </div>
         </div>
@@ -73,18 +73,17 @@ function LandingPage() {
                 "KidRight Academy delivers quality primary education with strong values, caring teachers, and a safe learning environment."}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href="#portals">
-                <Button variant="accent" className="bg-card text-foreground hover:bg-card/90">
-                  Access portals
-                </Button>
+              <a
+                href="#portals"
+                className="inline-flex h-11 items-center justify-center rounded-lg bg-card px-4 text-sm font-medium text-foreground shadow-sm transition hover:bg-card/90"
+              >
+                Access portals
               </a>
-              <a href="#contact">
-                <Button
-                  variant="outline"
-                  className="border-primary-foreground/40 text-primary-foreground hover:bg-primary-foreground/10"
-                >
-                  Contact the school
-                </Button>
+              <a
+                href="#contact"
+                className="inline-flex h-11 items-center justify-center rounded-lg border border-primary-foreground/40 px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary-foreground/10"
+              >
+                Contact the school
               </a>
             </div>
           </div>
@@ -159,27 +158,33 @@ function LandingPage() {
         <p className="text-sm font-semibold uppercase tracking-widest text-primary">Portals</p>
         <h2 className="mt-2 font-display text-3xl font-bold">Sign in to your workspace</h2>
         <p className="mt-2 max-w-2xl text-muted-foreground">
-          Secure access for students, teaching staff, and school administrators. Use the account
-          issued by the school office.
+          Accounts are issued by the registrar after admission or employment. Use your staff number,
+          admission number, or parent phone to sign in.
         </p>
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <PortalCard
             to="/login/student"
             icon={GraduationCap}
             title="Student portal"
-            description="View grades, attendance, fee statements, and school notices."
+            description="Grades, attendance, fee statements, and notices."
           />
           <PortalCard
             to="/login/staff"
             icon={Users}
-            title="Staff portal"
-            description="Mark attendance, enter grades, manage classes, and request leave."
+            title="Staff / Teacher"
+            description="Enter marks, attendance, classes, and leave."
+          />
+          <PortalCard
+            to="/login/parent"
+            icon={Heart}
+            title="Parent portal"
+            description="Children's performance, fees, arrears, and reports."
           />
           <PortalCard
             to="/login/admin"
             icon={Shield}
-            title="Admin portal"
-            description="Full school management: students, staff, fees, payroll, and settings."
+            title="Admin / Registrar"
+            description="Registration, fees, staff, payroll, and settings."
           />
         </div>
       </section>
@@ -221,13 +226,16 @@ function PortalCard({
   title,
   description,
 }: {
-  to: string;
+  to: "/login/student" | "/login/staff" | "/login/parent" | "/login/admin";
   icon: typeof GraduationCap;
   title: string;
   description: string;
 }) {
   return (
-    <Link to={to} className="surface-card block p-6 transition hover:shadow-pop">
+    <Link
+      to={to}
+      className="surface-card block cursor-pointer p-6 transition hover:shadow-pop focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+    >
       <div className="grid size-11 place-items-center rounded-xl bg-primary-soft text-primary">
         <Icon className="size-5" />
       </div>
