@@ -18,7 +18,7 @@ interface AuthContextValue {
   session: Session | null;
   user: User | null;
   profile: Profile | null;
-  signIn: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
+  signIn: (loginId: string, password: string, role?: Role) => Promise<{ ok: boolean; error?: string }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ ok: boolean; error?: string; needsConfirmation?: boolean }>;
   signOut: () => Promise<void>;
   portalPath: (role?: Role) => string;
@@ -91,21 +91,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [configured, loadProfile]);
 
-  const signIn = useCallback(async (email: string, password: string) => {
+  const signIn = useCallback(async (loginId: string, password: string, role?: Role) => {
     if (!isSupabaseConfigured()) {
       return {
         ok: false,
         error: "Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.",
       };
     }
-    const sb = getSupabase();
-    const { data, error } = await sb.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    });
-    if (error) return { ok: false, error: error.message };
-    if (data.user) await loadProfile(data.user.id);
-    return { ok: true };
+
+    const raw = loginId.trim();
+    if (!raw || !password) {
+      return { ok: false, error: "Enter your login ID and password." };
+    }
+
+    // Staff, students, and parents are issued school login IDs rather than
+    // real email addresses. Registration maps those IDs to synthetic auth
+    // emails, so resolve the same mapping before calling Supabase Auth.
+    let email = raw.toLowerCase();
+    if (role === "student") {
+      const safe = raw.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
+      email = `${safe}@student.kidright.internal`;
+    } else if (role === "staff" || role === "teacher") {
+      email = `${raw}@staff.kidright.internal`;
+    } else if (role === "parent" && !raw.includes("@")) {
+      const digits = raw.replace(/\\D/g, "");
+      if (!digits) return { ok: false, error: "Enter a valid parent phone number or email." };
+      email = `${digits}@parent.kidright.internal`;
+    }
+
+    try {
+      const sb = getSupabase();
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) return { ok: false, error: error.message };
+      if (data.user) await loadProfile(data.user.id);
+      return { ok: true };
+    } catch (err) {
+      return {
+        ok: false,
+        error: err instanceof Error ? err.message : "Unable to sign in. Please try again.",
+      };
+    }
   }, [loadProfile]);
 
   const signUp = useCallback(async (email: string, password: string, fullName: string) => {
@@ -132,9 +157,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const portalPath = useCallback((role?: Role) => {
     const r = role ?? profile?.role;
-    if (r === "admin") return "/admin";
-    if (r === "staff") return "/staff";
+    if (r === "admin" || r === "registrar") return "/admin";
+    if (r === "staff" || r === "teacher") return "/staff";
     if (r === "student") return "/student";
+    if (r === "parent") return "/parent";
     return "/";
   }, [profile?.role]);
 
