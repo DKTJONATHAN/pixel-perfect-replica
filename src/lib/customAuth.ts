@@ -3,7 +3,7 @@ import type { Profile } from "@/lib/database.types";
 import type { Role } from "@/lib/types";
 
 export type SessionProfile = Pick<Profile,"id"|"email"|"full_name"|"role"|"student_id"|"staff_id"|"login_id"|"parent_phone">;
-const DOMAIN = "accounts.kidright.local";
+const DOMAIN = "accounts.kidright.com";
 
 function authEmail(loginId: string, email?: string | null) {
   const e = (email ?? "").trim().toLowerCase();
@@ -45,9 +45,9 @@ export async function loadCurrentProfile() {
   return (data as SessionProfile | null) ?? null;
 }
 
-export async function registerAccount(input: { loginId: string; password: string; fullName: string; role: Role; parentPhone?: string }) {
+export async function registerAccount(input: { loginId: string; password: string; fullName: string; role: Role; parentPhone?: string; email?: string }) {
   const sb = getSupabase();
-  const { data, error } = await sb.rpc("register_account", {
+  const { data, error } = await sb.rpc("register_account_with_email", {
     p_login_id: input.loginId.trim(),
     p_password: input.password,
     p_full_name: input.fullName.trim(),
