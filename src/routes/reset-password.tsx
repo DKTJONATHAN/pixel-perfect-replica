@@ -21,17 +21,48 @@ function ResetPasswordPage() {
         if (mounted) setError("Supabase is not configured.");
         return;
       }
-      const { data, error: sessionError } = await getSupabase().auth.getSession();
+
+      const sb = getSupabase();
+      const { data, error: sessionError } = await sb.auth.getSession();
       if (!mounted) return;
-      if (sessionError || !data.session) {
-        setError("This password reset link is invalid or has expired. Request a new one.");
+
+      if (data.session) {
+        setReady(true);
         return;
       }
-      setReady(true);
+
+      if (sessionError) {
+        setError(sessionError.message);
+        return;
+      }
+
+      const { data: listener } = sb.auth.onAuthStateChange((event, session) => {
+        if (!mounted) return;
+        if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+          if (session) {
+            setReady(true);
+            setError("");
+          }
+        }
+      });
+
+      window.setTimeout(() => {
+        if (mounted && !ready) {
+          setError("This password reset link is invalid or has expired. Request a new one.");
+        }
+      }, 3000);
+
+      return () => listener.subscription.unsubscribe();
     }
-    void checkSession();
+
+    let cleanup: (() => void) | undefined;
+    void checkSession().then((fn) => {
+      cleanup = fn;
+    });
+
     return () => {
       mounted = false;
+      cleanup?.();
     };
   }, []);
 
