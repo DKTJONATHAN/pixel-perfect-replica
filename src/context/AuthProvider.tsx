@@ -19,6 +19,7 @@ interface AuthContextValue {
   user: User | null;
   profile: Profile | null;
   signIn: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
+  signUp: (email: string, password: string, fullName: string) => Promise<{ ok: boolean; error?: string; needsConfirmation?: boolean }>;
   signOut: () => Promise<void>;
   portalPath: (role?: Role) => string;
 }
@@ -107,6 +108,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { ok: true };
   }, [loadProfile]);
 
+  const signUp = useCallback(async (email: string, password: string, fullName: string) => {
+    if (!isSupabaseConfigured()) {
+      return { ok: false, error: "Supabase is not configured." };
+    }
+    const sb = getSupabase();
+    const { data, error } = await sb.auth.signUp({
+      email: email.trim(),
+      password,
+      options: { data: { full_name: fullName.trim() } },
+    });
+    if (error) return { ok: false, error: error.message };
+    if (data.user && data.session) await loadProfile(data.user.id);
+    return { ok: true, needsConfirmation: !data.session };
+  }, [loadProfile]);
+
   const signOut = useCallback(async () => {
     if (!isSupabaseConfigured()) return;
     await getSupabase().auth.signOut();
@@ -125,8 +141,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const user = profile ? profileToUser(profile) : null;
 
   const value = useMemo(
-    () => ({ ready, configured, session, user, profile, signIn, signOut, portalPath }),
-    [ready, configured, session, user, profile, signIn, signOut, portalPath],
+    () => ({ ready, configured, session, user, profile, signIn, signUp, signOut, portalPath }),
+    [ready, configured, session, user, profile, signIn, signUp, signOut, portalPath],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
