@@ -138,7 +138,6 @@ declare module '@tanstack/react-router' {
     '/reset-password': { id: '/reset-password'; path: '/reset-password'; fullPath: '/reset-password'; preLoaderRoute: typeof ResetPasswordRouteImport; parentRoute: typeof rootRouteImport }
     '/student/': { id: '/student/'; path: '/student'; fullPath: '/student/'; preLoaderRoute: typeof StudentIndexRouteImport; parentRoute: typeof rootRouteImport }
     '/staff/': { id: '/staff/'; path: '/staff'; fullPath: '/staff/'; preLoaderRoute: typeof StaffIndexRouteImport; parentRoute: typeof rootRouteImport }
-    '/staff/marks': { id: '/staff/marks'; path: '/staff/marks'; fullPath: '/staff/marks'; preLoaderRoute: typeof StaffIndexRouteImport; parentRoute: typeof rootRouteImport }
     '/staff/marks': { id: '/staff/marks'; path: '/staff/marks'; fullPath: '/staff/marks'; preLoaderRoute: typeof StaffMarksRouteImport; parentRoute: typeof rootRouteImport }
     '/staff/$section': { id: '/staff/$section'; path: '/staff/$section'; fullPath: '/staff/$section'; preLoaderRoute: typeof StaffSectionRouteImport; parentRoute: typeof rootRouteImport }
     '/admin/': { id: '/admin/'; path: '/admin'; fullPath: '/admin/'; preLoaderRoute: typeof AdminIndexRouteImport; parentRoute: typeof rootRouteImport }
