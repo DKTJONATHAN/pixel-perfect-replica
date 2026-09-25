@@ -1,5 +1,5 @@
 // Shared formatting, grading and CSV helpers.
-import type { Database, GradeRecord, Student } from "@/lib/types";
+import type { GradeRecord, SchoolClass, SchoolData, Student } from "@/lib/types";
 
 export function money(amount: number, currency = "KES") {
   return `${currency} ${amount.toLocaleString("en-KE", { maximumFractionDigits: 0 })}`;
@@ -40,7 +40,6 @@ export function timeAgo(iso: string) {
   return `${Math.round(hours / 24)} d ago`;
 }
 
-/** Letter grade from a percentage score. */
 export function letterGrade(score: number) {
   if (score >= 80) return "A";
   if (score >= 70) return "B";
@@ -66,7 +65,10 @@ export function termAverage(grades: GradeRecord[]) {
   return Math.round(average(grades.map((g) => g.score)) * 10) / 10;
 }
 
-export function className(db: Database, classId: string) {
+export function className(
+  db: Pick<SchoolData, "classes"> | { classes: SchoolClass[] },
+  classId: string,
+) {
   const c = db.classes.find((x) => x.id === classId);
   return c ? `${c.name} ${c.stream}` : "Unassigned";
 }
@@ -76,13 +78,14 @@ export function attendanceRate(present: number, total: number) {
   return Math.round((present / total) * 1000) / 10;
 }
 
-/** Turn rows into a CSV string and trigger a browser download. */
 export function downloadCsv(filename: string, headers: string[], rows: (string | number)[][]) {
   const escape = (v: string | number) => {
     const s = String(v ?? "");
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
-  const csv = [headers.map(escape).join(","), ...rows.map((r) => r.map(escape).join(","))].join("\n");
+  const csv = [headers.map(escape).join(","), ...rows.map((r) => r.map(escape).join(","))].join(
+    "\n",
+  );
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -90,52 +93,4 @@ export function downloadCsv(filename: string, headers: string[], rows: (string |
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
-}
-
-/** Minimal CSV parser supporting quoted values. */
-export function parseCsv(text: string): Record<string, string>[] {
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let field = "";
-  let quoted = false;
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (quoted) {
-      if (ch === '"' && text[i + 1] === '"') {
-        field += '"';
-        i++;
-      } else if (ch === '"') {
-        quoted = false;
-      } else {
-        field += ch;
-      }
-    } else if (ch === '"') {
-      quoted = true;
-    } else if (ch === ",") {
-      row.push(field.trim());
-      field = "";
-    } else if (ch === "\n" || ch === "\r") {
-      if (field !== "" || row.length) {
-        row.push(field.trim());
-        rows.push(row);
-        row = [];
-        field = "";
-      }
-    } else {
-      field += ch;
-    }
-  }
-  if (field !== "" || row.length) {
-    row.push(field.trim());
-    rows.push(row);
-  }
-  const [headers, ...body] = rows;
-  if (!headers) return [];
-  return body.map((r) => {
-    const obj: Record<string, string> = {};
-    headers.forEach((h, i) => {
-      obj[h.trim()] = r[i] ?? "";
-    });
-    return obj;
-  });
 }

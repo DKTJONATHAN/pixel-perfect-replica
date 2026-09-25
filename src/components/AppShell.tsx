@@ -1,12 +1,10 @@
 /**
- * Authenticated layout: collapsible sidebar, top navbar with global search,
- * notifications and dark-mode toggle, plus role-based route protection.
+ * Authenticated layout for student / staff / admin portals.
  */
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   BadgeDollarSign,
-  Bell,
   CalendarCheck,
   ClipboardList,
   GraduationCap,
@@ -17,7 +15,6 @@ import {
   PanelLeftClose,
   Plane,
   School,
-  Search,
   Settings as SettingsIcon,
   Sun,
   Users,
@@ -25,9 +22,10 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthProvider";
 import { useSchool, type Permission } from "@/context/SchoolProvider";
-import { Avatar, Badge, Button, Spinner } from "@/components/UI";
-import { fullName, money, prettyDate } from "@/lib/format";
+import type { Role } from "@/lib/types";
+import { Avatar, Button, Spinner } from "@/components/UI";
 
 type NavItem = {
   to: string;
@@ -36,34 +34,69 @@ type NavItem = {
   permission?: Permission;
 };
 
-const NAV: { group: string; items: NavItem[] }[] = [
-  {
-    group: "Overview",
-    items: [{ to: "/dashboard", label: "Dashboard", icon: LayoutDashboard }],
-  },
-  {
-    group: "Students",
-    items: [
-      { to: "/students", label: "Students", icon: GraduationCap, permission: "students.view" },
-      { to: "/classes", label: "Classes", icon: School, permission: "students.view" },
-      { to: "/attendance", label: "Attendance", icon: CalendarCheck, permission: "attendance.mark" },
-      { to: "/grades", label: "Grades", icon: ClipboardList, permission: "grades.edit" },
-      { to: "/fees", label: "Fees", icon: BadgeDollarSign, permission: "fees.manage" },
-    ],
-  },
-  {
-    group: "Staff",
-    items: [
-      { to: "/staff", label: "Staff", icon: Users, permission: "staff.view" },
-      { to: "/leave", label: "Leave", icon: Plane, permission: "staff.view" },
-      { to: "/payroll", label: "Payroll", icon: Wallet, permission: "payroll.view" },
-    ],
-  },
-  {
-    group: "School",
-    items: [{ to: "/settings", label: "Settings", icon: SettingsIcon, permission: "settings.manage" }],
-  },
-];
+const NAV_BY_PORTAL: Record<Role, { group: string; items: NavItem[] }[]> = {
+  student: [
+    {
+      group: "My learning",
+      items: [{ to: "/student", label: "Dashboard", icon: LayoutDashboard }],
+    },
+  ],
+  staff: [
+    {
+      group: "Overview",
+      items: [{ to: "/staff", label: "Dashboard", icon: LayoutDashboard }],
+    },
+    {
+      group: "Teaching",
+      items: [
+        { to: "/staff/students", label: "Students", icon: GraduationCap, permission: "students.view" },
+        { to: "/staff/classes", label: "Classes", icon: School, permission: "students.view" },
+        {
+          to: "/staff/attendance",
+          label: "Attendance",
+          icon: CalendarCheck,
+          permission: "attendance.mark",
+        },
+        { to: "/staff/grades", label: "Grades", icon: ClipboardList, permission: "grades.edit" },
+      ],
+    },
+  ],
+  admin: [
+    {
+      group: "Overview",
+      items: [{ to: "/admin", label: "Dashboard", icon: LayoutDashboard }],
+    },
+    {
+      group: "Students",
+      items: [
+        { to: "/admin/students", label: "Students", icon: GraduationCap, permission: "students.view" },
+        { to: "/admin/classes", label: "Classes", icon: School, permission: "students.view" },
+        {
+          to: "/admin/attendance",
+          label: "Attendance",
+          icon: CalendarCheck,
+          permission: "attendance.mark",
+        },
+        { to: "/admin/grades", label: "Grades", icon: ClipboardList, permission: "grades.edit" },
+        { to: "/admin/fees", label: "Fees", icon: BadgeDollarSign, permission: "fees.manage" },
+      ],
+    },
+    {
+      group: "Staff",
+      items: [
+        { to: "/admin/staff", label: "Staff", icon: Users, permission: "staff.view" },
+        { to: "/admin/leave", label: "Leave", icon: Plane, permission: "staff.view" },
+        { to: "/admin/payroll", label: "Payroll", icon: Wallet, permission: "payroll.view" },
+      ],
+    },
+    {
+      group: "School",
+      items: [
+        { to: "/admin/settings", label: "Settings", icon: SettingsIcon, permission: "settings.manage" },
+      ],
+    },
+  ],
+};
 
 export function Logo({ compact = false }: { compact?: boolean }) {
   return (
@@ -73,9 +106,7 @@ export function Logo({ compact = false }: { compact?: boolean }) {
       </span>
       {!compact && (
         <span className="min-w-0">
-          <span className="block truncate font-display text-base leading-tight font-bold">
-            KidRight
-          </span>
+          <span className="block truncate font-display text-base leading-tight font-bold">KidRight</span>
           <span className="block truncate text-[11px] tracking-wide text-muted-foreground uppercase">
             Academy
           </span>
@@ -91,59 +122,38 @@ export function AppShell({
   subtitle,
   actions,
   requires,
+  portal,
 }: {
   children: ReactNode;
   title: string;
   subtitle?: string;
   actions?: ReactNode;
   requires?: Permission;
+  portal: Role;
 }) {
-  const { ready, user, can, logout, theme, toggleTheme, db } = useSchool();
+  const { ready: authReady, user, signOut } = useAuth();
+  const { ready, can, theme, toggleTheme } = useSchool();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [notifOpen, setNotifOpen] = useState(false);
 
   useEffect(() => {
-    if (ready && !user) navigate({ to: "/" });
-  }, [ready, user, navigate]);
+    if (!authReady) return;
+    if (!user) {
+      navigate({ to: `/login/${portal}` });
+      return;
+    }
+    if (user.role !== portal && !(portal === "staff" && user.role === "admin")) {
+      navigate({ to: user.role === "admin" ? "/admin" : user.role === "staff" ? "/staff" : "/student" });
+    }
+  }, [authReady, user, portal, navigate]);
 
   useEffect(() => {
     setMobileOpen(false);
-    setNotifOpen(false);
   }, [pathname]);
 
-  const notifications = useMemo(() => {
-    const pendingLeave = db.leave.filter((l) => l.status === "Pending");
-    const items = pendingLeave.map((l) => ({
-      id: l.id,
-      title: "Leave request awaiting review",
-      body: `${db.staff.find((s) => s.id === l.staffId)?.fullName ?? "Staff"} · ${l.type} · ${l.days} days`,
-    }));
-    const balances = db.students
-      .filter((s) => s.status === "Active")
-      .map((s) => {
-        const cls = db.classes.find((c) => c.id === s.classId);
-        const paid = db.payments
-          .filter((p) => p.studentId === s.id)
-          .reduce((a, p) => a + p.amount, 0);
-        return { student: s, balance: (cls?.feePerTerm ?? 0) - paid };
-      })
-      .filter((x) => x.balance > 0)
-      .sort((a, b) => b.balance - a.balance)
-      .slice(0, 4);
-    balances.forEach((b) =>
-      items.push({
-        id: `fee-${b.student.id}`,
-        title: "Fee balance outstanding",
-        body: `${fullName(b.student)} owes ${money(b.balance, db.settings.currency)}`,
-      }),
-    );
-    return items;
-  }, [db]);
-
-  if (!ready) return <Spinner label="Opening KidRight Academy" />;
+  if (!authReady || !ready) return <Spinner label="Loading" />;
   if (!user) return <Spinner label="Redirecting to sign in" />;
 
   if (requires && !can(requires)) {
@@ -152,10 +162,9 @@ export function AppShell({
         <div className="surface-card max-w-md p-8 text-center">
           <h1 className="font-display text-xl font-bold">You don't have access to this page</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Your account is signed in as {roleLabel(user.role)}. Ask an administrator if you need
-            access.
+            Your account is signed in as {roleLabel(user.role)}.
           </p>
-          <Button className="mt-5" onClick={() => navigate({ to: "/dashboard" })}>
+          <Button className="mt-5" onClick={() => navigate({ to: `/${portal}` })}>
             Back to dashboard
           </Button>
         </div>
@@ -163,14 +172,15 @@ export function AppShell({
     );
   }
 
-  const visibleNav = NAV.map((g) => ({
-    ...g,
-    items: g.items.filter((i) => !i.permission || can(i.permission)),
-  })).filter((g) => g.items.length);
+  const nav = NAV_BY_PORTAL[portal]
+    .map((g) => ({
+      ...g,
+      items: g.items.filter((i) => !i.permission || can(i.permission)),
+    }))
+    .filter((g) => g.items.length);
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* Sidebar */}
       <aside
         className={cn(
           "no-print fixed inset-y-0 left-0 z-40 flex flex-col bg-sidebar text-sidebar-foreground transition-[width,transform] duration-200 lg:static lg:translate-x-0",
@@ -179,7 +189,7 @@ export function AppShell({
         )}
       >
         <div className="flex h-16 items-center justify-between gap-2 border-b border-sidebar-border px-4">
-          <span className="min-w-0 text-sidebar-foreground [&_span]:text-sidebar-foreground">
+          <span className="min-w-0 text-sidebar-foreground">
             <Logo compact={collapsed} />
           </span>
           <Button
@@ -194,7 +204,7 @@ export function AppShell({
         </div>
 
         <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-5">
-          {visibleNav.map((group) => (
+          {nav.map((group) => (
             <div key={group.group}>
               {!collapsed && (
                 <p className="px-3 pb-2 text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase">
@@ -203,7 +213,9 @@ export function AppShell({
               )}
               <ul className="space-y-1">
                 {group.items.map((item) => {
-                  const active = pathname === item.to || pathname.startsWith(`${item.to}/`);
+                  const active =
+                    pathname === item.to ||
+                    (item.to !== `/${portal}` && pathname.startsWith(`${item.to}`));
                   return (
                     <li key={item.to}>
                       <Link
@@ -246,7 +258,6 @@ export function AppShell({
         />
       )}
 
-      {/* Main column */}
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="no-print sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-card/95 px-4 backdrop-blur">
           <Button
@@ -259,8 +270,6 @@ export function AppShell({
             <Menu className="size-5" />
           </Button>
 
-          <GlobalSearch />
-
           <div className="relative ml-auto flex items-center gap-1">
             <Button
               variant="ghost"
@@ -270,37 +279,6 @@ export function AppShell({
             >
               {theme === "light" ? <Moon className="size-5" /> : <Sun className="size-5" />}
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Notifications"
-              onClick={() => setNotifOpen((o) => !o)}
-              className="relative"
-            >
-              <Bell className="size-5" />
-              {notifications.length > 0 && (
-                <span className="absolute top-2 right-2 grid size-4 place-items-center rounded-full bg-accent text-[10px] font-bold text-accent-foreground">
-                  {notifications.length}
-                </span>
-              )}
-            </Button>
-
-            {notifOpen && (
-              <div className="surface-card absolute top-14 right-0 z-30 w-80 p-4 shadow-pop">
-                <h3 className="text-sm font-semibold">Notifications</h3>
-                <ul className="mt-3 space-y-3">
-                  {notifications.length === 0 && (
-                    <li className="text-sm text-muted-foreground">You're all caught up.</li>
-                  )}
-                  {notifications.slice(0, 6).map((n) => (
-                    <li key={n.id} className="border-b border-border pb-3 last:border-0 last:pb-0">
-                      <p className="text-sm font-medium">{n.title}</p>
-                      <p className="text-xs text-muted-foreground">{n.body}</p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
 
             <div className="ml-1 flex items-center gap-2 border-l border-border pl-3">
               <Avatar name={user.name} size="sm" />
@@ -308,7 +286,12 @@ export function AppShell({
                 <span className="block truncate text-sm font-medium">{user.name}</span>
                 <span className="block text-xs text-muted-foreground">{roleLabel(user.role)}</span>
               </span>
-              <Button variant="ghost" size="icon" aria-label="Sign out" onClick={logout}>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Sign out"
+                onClick={() => void signOut().then(() => navigate({ to: "/" }))}
+              >
                 <LogOut className="size-4.5" />
               </Button>
             </div>
@@ -334,99 +317,6 @@ export function AppShell({
 
 export function roleLabel(role: string) {
   if (role === "admin") return "Administrator";
-  if (role === "teacher") return "Teacher";
-  return "Registrar";
-}
-
-/** Search across students and staff from the navbar. */
-function GlobalSearch() {
-  const { db } = useSchool();
-  const [term, setTerm] = useState("");
-  const [open, setOpen] = useState(false);
-  const boxRef = useRef<HTMLDivElement>(null);
-
-  const results = useMemo(() => {
-    const q = term.trim().toLowerCase();
-    if (q.length < 2) return { students: [], staff: [] };
-    return {
-      students: db.students
-        .filter(
-          (s) =>
-            fullName(s).toLowerCase().includes(q) || s.admissionNo.toLowerCase().includes(q),
-        )
-        .slice(0, 5),
-      staff: db.staff
-        .filter((s) => s.fullName.toLowerCase().includes(q) || s.staffNo.toLowerCase().includes(q))
-        .slice(0, 5),
-    };
-  }, [term, db]);
-
-  const hasResults = results.students.length + results.staff.length > 0;
-
-  return (
-    <div ref={boxRef} className="relative w-full max-w-md">
-      <label htmlFor="global-search" className="sr-only">
-        Search students and staff
-      </label>
-      <Search
-        className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-        aria-hidden
-      />
-      <input
-        id="global-search"
-        value={term}
-        onChange={(e) => {
-          setTerm(e.target.value);
-          setOpen(true);
-        }}
-        onFocus={() => setOpen(true)}
-        onBlur={() => window.setTimeout(() => setOpen(false), 150)}
-        placeholder="Search students or staff…"
-        className="w-full rounded-lg border border-input bg-background py-2.5 pr-3 pl-9 text-sm placeholder:text-muted-foreground"
-      />
-      {open && term.trim().length >= 2 && (
-        <div className="surface-card absolute top-12 left-0 z-30 w-full p-2 shadow-pop">
-          {!hasResults && (
-            <p className="px-2 py-3 text-sm text-muted-foreground">No matches for “{term}”.</p>
-          )}
-          {results.students.map((s) => (
-            <Link
-              key={s.id}
-              to="/students/$studentId"
-              params={{ studentId: s.id }}
-              className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-muted"
-            >
-              <Avatar name={fullName(s)} size="sm" />
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-medium">{fullName(s)}</span>
-                <span className="block text-xs text-muted-foreground">{s.admissionNo}</span>
-              </span>
-              <Badge tone="primary" className="ml-auto">
-                Student
-              </Badge>
-            </Link>
-          ))}
-          {results.staff.map((s) => (
-            <Link
-              key={s.id}
-              to="/staff/$staffId"
-              params={{ staffId: s.id }}
-              className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-muted"
-            >
-              <Avatar name={s.fullName} size="sm" />
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-medium">{s.fullName}</span>
-                <span className="block text-xs text-muted-foreground">
-                  {s.role} · joined {prettyDate(s.dateJoined)}
-                </span>
-              </span>
-              <Badge tone="accent" className="ml-auto">
-                Staff
-              </Badge>
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  if (role === "staff") return "Staff";
+  return "Student";
 }
