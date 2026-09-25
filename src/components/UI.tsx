@@ -188,6 +188,9 @@ export function TextInput({ className, ...props }: InputHTMLAttributes<HTMLInput
   return <input {...props} className={cn(CONTROL, className)} />;
 }
 
+// Backwards-compatible alias used by the route components.
+export const Input = TextInput;
+
 export function TextArea({ className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return <textarea {...props} className={cn(CONTROL, "min-h-24", className)} />;
 }
