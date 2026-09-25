@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { isSupabaseConfigured, getSupabase } from "@/lib/supabase";
 import type { Profile } from "@/lib/database.types";
 import type { Role, User } from "@/lib/types";
-import { clearSession, loadStoredSession, loginAccount, registerAccount, signOutAccount, loadCurrentProfile, type SessionProfile } from "@/lib/customAuth";
+import { loginAccount, registerAccount, signOutAccount, loadCurrentProfile, type SessionProfile } from "@/lib/customAuth";
 
 interface AuthContextValue {
   ready: boolean;
@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return {ok:true};
   },[configured]);
 
-  const signOut=useCallback(async()=>{ await signOutAccount(); clearSession(); setSession(null); setProfile(null); },[]);
+  const signOut=useCallback(async()=>{ await signOutAccount(); setSession(null); setProfile(null); },[]);
   const portalPath=useCallback((role?:Role)=>{
     const r=role ?? (profile?.role as Role|undefined);
     if(r==="admin"||r==="registrar")return "/admin";
