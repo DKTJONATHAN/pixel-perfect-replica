@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";\nimport type { Session } from "@supabase/supabase-js";
 import { isSupabaseConfigured, getSupabase } from "@/lib/supabase";
 import type { Profile } from "@/lib/database.types";
 import type { Role, User } from "@/lib/types";
@@ -7,7 +7,7 @@ import { clearSession, loadStoredSession, loginAccount, registerAccount, signOut
 interface AuthContextValue {
   ready: boolean;
   configured: boolean;
-  session: Awaited<ReturnType<ReturnType<typeof getSupabase>["auth"]["getSession"]>>["data"]["session"] | null;
+  session: Session | null;
   user: User | null;
   profile: Profile | null;
   signIn: (loginId: string, password: string, role?: Role) => Promise<{ ok: boolean; error?: string }>;
