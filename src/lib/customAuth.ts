@@ -1,4 +1,4 @@
-import { getSupabase } from "@/lib/supabase";
+import { createIsolatedSupabaseClient, getSupabase } from "@/lib/supabase";
 import type { Profile } from "@/lib/database.types";
 import type { Role } from "@/lib/types";
 
@@ -55,7 +55,7 @@ export async function registerAccount(input: { loginId: string; password: string
     p_parent_phone: input.parentPhone ?? null,
   });
   if (error) return { ok: false as const, error: error.message };
-  return establish(data as SessionProfile, input.password);
+  return establish(data as SessionProfile, input.password, false);
 }
 
 export async function loginAccount(loginId: string, secret: string) {
