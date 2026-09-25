@@ -19,8 +19,10 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminSectionRouteImport } from './routes/admin/$section'
 import { Route as AdminAttendanceRouteImport } from './routes/admin/attendance'
+import { Route as AdminClassesRouteImport } from './routes/admin/classes'
 import { Route as AdminFeesRouteImport } from './routes/admin/fees'
 import { Route as AdminRegisterRouteImport } from './routes/admin/register'
+import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as LoginIndexRouteImport } from './routes/login.index'
 import { Route as LoginAdminRouteImport } from './routes/login.admin'
 import { Route as LoginParentRouteImport } from './routes/login.parent'
@@ -83,6 +85,11 @@ const AdminAttendanceRoute = AdminAttendanceRouteImport.update({
   path: '/admin/attendance',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminClassesRoute = AdminClassesRouteImport.update({
+  id: '/admin/classes',
+  path: '/admin/classes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminFeesRoute = AdminFeesRouteImport.update({
   id: '/admin/fees',
   path: '/admin/fees',
@@ -91,6 +98,11 @@ const AdminFeesRoute = AdminFeesRouteImport.update({
 const AdminRegisterRoute = AdminRegisterRouteImport.update({
   id: '/admin/register',
   path: '/admin/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/admin/settings',
+  path: '/admin/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginIndexRoute = LoginIndexRouteImport.update({
@@ -159,8 +171,10 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/admin/$section': typeof AdminSectionRoute
   '/admin/attendance': typeof AdminAttendanceRoute
+  '/admin/classes': typeof AdminClassesRoute
   '/admin/fees': typeof AdminFeesRoute
   '/admin/register': typeof AdminRegisterRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/login/admin': typeof LoginAdminRoute
   '/login/parent': typeof LoginParentRoute
   '/login/staff': typeof LoginStaffRoute
@@ -183,8 +197,10 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/admin/$section': typeof AdminSectionRoute
   '/admin/attendance': typeof AdminAttendanceRoute
+  '/admin/classes': typeof AdminClassesRoute
   '/admin/fees': typeof AdminFeesRoute
   '/admin/register': typeof AdminRegisterRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/login/admin': typeof LoginAdminRoute
   '/login/parent': typeof LoginParentRoute
   '/login/staff': typeof LoginStaffRoute
@@ -209,8 +225,10 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/admin/$section': typeof AdminSectionRoute
   '/admin/attendance': typeof AdminAttendanceRoute
+  '/admin/classes': typeof AdminClassesRoute
   '/admin/fees': typeof AdminFeesRoute
   '/admin/register': typeof AdminRegisterRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/login/admin': typeof LoginAdminRoute
   '/login/parent': typeof LoginParentRoute
   '/login/staff': typeof LoginStaffRoute
@@ -236,8 +254,10 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin/$section'
     | '/admin/attendance'
+    | '/admin/classes'
     | '/admin/fees'
     | '/admin/register'
+    | '/admin/settings'
     | '/login/admin'
     | '/login/parent'
     | '/login/staff'
@@ -260,8 +280,10 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin/$section'
     | '/admin/attendance'
+    | '/admin/classes'
     | '/admin/fees'
     | '/admin/register'
+    | '/admin/settings'
     | '/login/admin'
     | '/login/parent'
     | '/login/staff'
@@ -285,8 +307,10 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin/$section'
     | '/admin/attendance'
+    | '/admin/classes'
     | '/admin/fees'
     | '/admin/register'
+    | '/admin/settings'
     | '/login/admin'
     | '/login/parent'
     | '/login/staff'
@@ -311,8 +335,10 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   AdminSectionRoute: typeof AdminSectionRoute
   AdminAttendanceRoute: typeof AdminAttendanceRoute
+  AdminClassesRoute: typeof AdminClassesRoute
   AdminFeesRoute: typeof AdminFeesRoute
   AdminRegisterRoute: typeof AdminRegisterRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
   StaffSectionRoute: typeof StaffSectionRoute
   StaffAttendanceRoute: typeof StaffAttendanceRoute
   StaffMarksRoute: typeof StaffMarksRoute
@@ -394,6 +420,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAttendanceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/classes': {
+      id: '/admin/classes'
+      path: '/admin/classes'
+      fullPath: '/admin/classes'
+      preLoaderRoute: typeof AdminClassesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/fees': {
       id: '/admin/fees'
       path: '/admin/fees'
@@ -406,6 +439,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/register'
       fullPath: '/admin/register'
       preLoaderRoute: typeof AdminRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/admin/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login/': {
@@ -516,8 +556,10 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   AdminSectionRoute: AdminSectionRoute,
   AdminAttendanceRoute: AdminAttendanceRoute,
+  AdminClassesRoute: AdminClassesRoute,
   AdminFeesRoute: AdminFeesRoute,
   AdminRegisterRoute: AdminRegisterRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
   StaffSectionRoute: StaffSectionRoute,
   StaffAttendanceRoute: StaffAttendanceRoute,
   StaffMarksRoute: StaffMarksRoute,
