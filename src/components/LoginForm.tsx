@@ -113,7 +113,12 @@ export function LoginForm({
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium">Password</label>
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <label className="block text-sm font-medium">Password</label>
+                    <a href="/forgot-password" className="text-xs font-medium text-primary hover:underline">
+                      Forgot password?
+                    </a>
+                  </div>
                   <Input
                     type="password"
                     autoComplete="current-password"
