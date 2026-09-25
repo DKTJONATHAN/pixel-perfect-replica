@@ -10,6 +10,7 @@ export const Route = createFileRoute("/signup")({ component: SignupPage });
 function SignupPage() {
   const [fullName,setFullName]=useState("");
   const [phone,setPhone]=useState("");
+  const [email,setEmail]=useState("");
   const [password,setPassword]=useState("");
   const [confirm,setConfirm]=useState("");
   const [error,setError]=useState("");
@@ -21,14 +22,15 @@ function SignupPage() {
     if(!isSupabaseConfigured()){setError("Supabase is not configured.");return;}
     if(!fullName.trim()){setError("Enter your full name.");return;}
     if(!phone.trim()){setError("Enter your phone number.");return;}
+    if(!email.trim()){setError("Enter your email address.");return;}
     if(password.length<6){setError("Password must be at least 6 characters.");return;}
     if(password!==confirm){setError("Passwords do not match.");return;}
     setLoading(true);
     try{
       const loginId=phone.replace(/\D/g,"")||phone.trim();
-      const result=await registerAccount({loginId,password,fullName:fullName.trim(),role:"parent",parentPhone:phone.trim()});
+      const result=await registerAccount({loginId,password,fullName:fullName.trim(),role:"parent",parentPhone:phone.trim(),email:email.trim()});
       if(!result.ok) throw new Error(result.error);
-      setMessage("Parent account created. You can now sign in with your phone number and password.");
+      setMessage("Parent account created. You can now sign in with your phone number or email and password. Password reset links will be sent to this email.");
       setPassword(""); setConfirm("");
     }catch(err){setError(err instanceof Error?err.message:"Sign up failed");}
     finally{setLoading(false);}
@@ -45,6 +47,7 @@ function SignupPage() {
         <form className="space-y-4" onSubmit={onSubmit}>
           <div><label className="mb-1.5 block text-sm font-medium">Full name</label><Input required value={fullName} onChange={e=>setFullName(e.target.value)} /></div>
           <div><label className="mb-1.5 block text-sm font-medium">Phone number</label><Input required value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+254 7xx xxx xxx" autoComplete="tel" /></div>
+          <div><label className="mb-1.5 block text-sm font-medium">Email address</label><Input required type="email" value={email} onChange={e=>setEmail(e.target.value)} autoComplete="email" placeholder="you@example.com" /></div>
           <div><label className="mb-1.5 block text-sm font-medium">Password</label><Input type="password" required minLength={6} value={password} onChange={e=>setPassword(e.target.value)} autoComplete="new-password" /></div>
           <div><label className="mb-1.5 block text-sm font-medium">Confirm password</label><Input type="password" required minLength={6} value={confirm} onChange={e=>setConfirm(e.target.value)} autoComplete="new-password" /></div>
           {error&&<p className="text-sm text-destructive">{error}</p>}
