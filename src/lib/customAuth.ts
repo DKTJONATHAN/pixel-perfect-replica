@@ -28,7 +28,7 @@ async function establish(profile: SessionProfile, secret: string) {
 
   if (!user) return { ok: false as const, error: result.error?.message ?? "Authentication failed." };
 
-  const { data, error } = await sb.rpc("link_auth_user", {
+  const { data, error } = await (sb.rpc as any)("link_auth_user", {
     p_login_id: profile.login_id ?? "",
     p_password: secret,
     p_auth_user_id: user.id,
