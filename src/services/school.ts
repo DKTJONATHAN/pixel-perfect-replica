@@ -63,6 +63,7 @@ export async function fetchSchoolData(): Promise<SchoolData> {
     paymentsRes,
     leaveRes,
     activityRes,
+    staffAttendanceRes,
   ] = await Promise.all([
     fetchSchoolSettings(),
     sb.from("classes").select("*").order("name"),
@@ -73,6 +74,7 @@ export async function fetchSchoolData(): Promise<SchoolData> {
     sb.from("payments").select("*").order("date", { ascending: false }).limit(200),
     sb.from("leave_requests").select("*").order("requested_at", { ascending: false }),
     sb.from("activity_log").select("*").order("at", { ascending: false }).limit(40),
+    sb.from("staff_attendance").select("*").order("date", { ascending: false }).limit(500),
   ]);
 
   const classes: SchoolClass[] = (classesRes.data ?? []).map((c) => ({
@@ -171,7 +173,7 @@ export async function fetchSchoolData(): Promise<SchoolData> {
     message: a.message,
   }));
 
-  const staffAttendance: StaffAttendanceRecord[] = [];
+  const staffAttendance: StaffAttendanceRecord[] = (staffAttendanceRes.data ?? []).map((a) => ({\n    id: a.id,\n    date: a.date,\n    staffId: a.staff_id,\n    status: a.status as StaffAttendanceRecord["status"],\n  }));
 
   return {
     settings,
