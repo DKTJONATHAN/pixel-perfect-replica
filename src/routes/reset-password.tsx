@@ -16,6 +16,8 @@ function ResetPasswordPage() {
 
   useEffect(() => {
     let mounted = true;
+    let hasSession = false;
+    let timeoutId: number | undefined;
     async function checkSession() {
       if (!isSupabaseConfigured()) {
         if (mounted) setError("Supabase is not configured.");
@@ -27,6 +29,7 @@ function ResetPasswordPage() {
       if (!mounted) return;
 
       if (data.session) {
+        hasSession = true;
         setReady(true);
         return;
       }
@@ -40,14 +43,15 @@ function ResetPasswordPage() {
         if (!mounted) return;
         if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
           if (session) {
+            hasSession = true;
             setReady(true);
             setError("");
           }
         }
       });
 
-      window.setTimeout(() => {
-        if (mounted && !ready) {
+      timeoutId = window.setTimeout(() => {
+        if (mounted && !hasSession) {
           setError("This password reset link is invalid or has expired. Request a new one.");
         }
       }, 3000);
@@ -63,6 +67,7 @@ function ResetPasswordPage() {
     return () => {
       mounted = false;
       cleanup?.();
+      if (timeoutId) window.clearTimeout(timeoutId);
     };
   }, []);
 
