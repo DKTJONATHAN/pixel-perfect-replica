@@ -173,7 +173,12 @@ export async function fetchSchoolData(): Promise<SchoolData> {
     message: a.message,
   }));
 
-  const staffAttendance: StaffAttendanceRecord[] = (staffAttendanceRes.data ?? []).map((a) => ({\n    id: a.id,\n    date: a.date,\n    staffId: a.staff_id,\n    status: a.status as StaffAttendanceRecord["status"],\n  }));
+  const staffAttendance: StaffAttendanceRecord[] = (staffAttendanceRes.data ?? []).map((a) => ({
+    id: a.id,
+    date: a.date,
+    staffId: a.staff_id,
+    status: a.status as StaffAttendanceRecord["status"],
+  }));
 
   return {
     settings,
