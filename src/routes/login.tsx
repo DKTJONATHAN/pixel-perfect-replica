@@ -42,8 +42,8 @@ function HubLink({
   hint: string;
 }) {
   return (
-    <Link
-      to={to}
+    <a
+      href={to}
       className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 transition hover:bg-muted"
     >
       <span className="grid size-10 place-items-center rounded-lg bg-primary-soft text-primary">
@@ -54,6 +54,6 @@ function HubLink({
         <span className="block text-xs text-muted-foreground">{hint}</span>
       </span>
       <span className="ml-auto text-muted-foreground">→</span>
-    </Link>
+    </a>
   );
 }
