@@ -11,6 +11,7 @@ import type { Session } from "@supabase/supabase-js";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import type { Profile } from "@/lib/database.types";
 import type { Role, User } from "@/lib/types";
+import { parentAuthEmail, staffAuthEmail, studentAuthEmail } from "@/services/registration";
 
 interface AuthContextValue {
   ready: boolean;
@@ -19,7 +20,11 @@ interface AuthContextValue {
   user: User | null;
   profile: Profile | null;
   signIn: (loginId: string, password: string, role?: Role) => Promise<{ ok: boolean; error?: string }>;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ ok: boolean; error?: string; needsConfirmation?: boolean }>;
+  signUp: (
+    email: string,
+    password: string,
+    fullName: string,
+  ) => Promise<{ ok: boolean; error?: string; needsConfirmation?: boolean }>;
   signOut: () => Promise<void>;
   portalPath: (role?: Role) => string;
 }
@@ -31,7 +36,7 @@ function profileToUser(p: Profile): User {
     id: p.id,
     name: p.full_name || p.email,
     email: p.email,
-    role: p.role,
+    role: p.role as Role,
     studentId: p.student_id,
     staffId: p.staff_id,
   };
@@ -78,11 +83,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       data: { subscription },
     } = sb.auth.onAuthStateChange((_event, next) => {
       setSession(next);
-      if (next?.user) {
-        void loadProfile(next.user.id);
-      } else {
-        setProfile(null);
-      }
+      if (next?.user) void loadProfile(next.user.id);
+      else setProfile(null);
     });
 
     return () => {
@@ -91,62 +93,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [configured, loadProfile]);
 
-  const signIn = useCallback(async (loginId: string, password: string, role?: Role) => {
-    if (!isSupabaseConfigured()) {
-      return {
-        ok: false,
-        error: "Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.",
-      };
-    }
+  const signIn = useCallback(
+    async (loginId: string, password: string, role?: Role) => {
+      if (!isSupabaseConfigured()) {
+        return {
+          ok: false,
+          error: "Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.",
+        };
+      }
 
-    const raw = loginId.trim();
-    if (!raw || !password) {
-      return { ok: false, error: "Enter your login ID and password." };
-    }
+      const raw = loginId.trim();
+      if (!raw || !password) {
+        return { ok: false, error: "Enter your login ID and password." };
+      }
 
-    // Staff, students, and parents are issued school login IDs rather than
-    // real email addresses. Registration maps those IDs to synthetic auth
-    // emails, so resolve the same mapping before calling Supabase Auth.
-    let email = raw.toLowerCase();
-    if (role === "student") {
-      const safe = raw.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
-      email = `${safe}@student.kidright.internal`;
-    } else if (role === "staff" || role === "teacher") {
-      email = `${raw}@staff.kidright.internal`;
-    } else if (role === "parent" && !raw.includes("@")) {
-      const digits = raw.replace(/\\D/g, "");
-      if (!digits) return { ok: false, error: "Enter a valid parent phone number or email." };
-      email = `${digits}@parent.kidright.internal`;
-    }
+      let email = raw.includes("@") ? raw.toLowerCase() : raw.toLowerCase();
 
-    try {
+      if (role === "student") {
+        email = studentAuthEmail(raw);
+      } else if (role === "staff" || role === "teacher") {
+        email = staffAuthEmail(raw);
+      } else if (role === "parent" && !raw.includes("@")) {
+        email = parentAuthEmail(raw);
+      } else if (role === "admin" || role === "registrar") {
+        email = raw.toLowerCase();
+      }
+
+      try {
+        const sb = getSupabase();
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) return { ok: false, error: error.message };
+        if (data.user) await loadProfile(data.user.id);
+        return { ok: true };
+      } catch (err) {
+        return {
+          ok: false,
+          error: err instanceof Error ? err.message : "Unable to sign in. Please try again.",
+        };
+      }
+    },
+    [loadProfile],
+  );
+
+  const signUp = useCallback(
+    async (email: string, password: string, fullName: string) => {
+      if (!isSupabaseConfigured()) {
+        return { ok: false, error: "Supabase is not configured." };
+      }
       const sb = getSupabase();
-      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      const { data, error } = await sb.auth.signUp({
+        email: email.trim(),
+        password,
+        options: { data: { full_name: fullName.trim() } },
+      });
       if (error) return { ok: false, error: error.message };
-      if (data.user) await loadProfile(data.user.id);
-      return { ok: true };
-    } catch (err) {
-      return {
-        ok: false,
-        error: err instanceof Error ? err.message : "Unable to sign in. Please try again.",
-      };
-    }
-  }, [loadProfile]);
-
-  const signUp = useCallback(async (email: string, password: string, fullName: string) => {
-    if (!isSupabaseConfigured()) {
-      return { ok: false, error: "Supabase is not configured." };
-    }
-    const sb = getSupabase();
-    const { data, error } = await sb.auth.signUp({
-      email: email.trim(),
-      password,
-      options: { data: { full_name: fullName.trim() } },
-    });
-    if (error) return { ok: false, error: error.message };
-    if (data.user && data.session) await loadProfile(data.user.id);
-    return { ok: true, needsConfirmation: !data.session };
-  }, [loadProfile]);
+      if (data.user && data.session) await loadProfile(data.user.id);
+      return { ok: true, needsConfirmation: !data.session };
+    },
+    [loadProfile],
+  );
 
   const signOut = useCallback(async () => {
     if (!isSupabaseConfigured()) return;
@@ -155,14 +160,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
   }, []);
 
-  const portalPath = useCallback((role?: Role) => {
-    const r = role ?? profile?.role;
-    if (r === "admin" || r === "registrar") return "/admin";
-    if (r === "staff" || r === "teacher") return "/staff";
-    if (r === "student") return "/student";
-    if (r === "parent") return "/parent";
-    return "/";
-  }, [profile?.role]);
+  const portalPath = useCallback(
+    (role?: Role) => {
+      const r = role ?? (profile?.role as Role | undefined);
+      if (r === "admin" || r === "registrar") return "/admin";
+      if (r === "staff" || r === "teacher") return "/staff";
+      if (r === "student") return "/student";
+      if (r === "parent") return "/parent";
+      return "/";
+    },
+    [profile?.role],
+  );
 
   const user = profile ? profileToUser(profile) : null;
 

@@ -6,27 +6,31 @@ import type {
   TeacherEmployment,
 } from "@/lib/types";
 
-/** Synthetic auth emails so users can log in with staff/admission numbers. */
+/**
+ * Synthetic auth emails — must look like real addresses (Supabase rejects .internal).
+ * Users never type these; they sign in with staff no. / admission no. / phone.
+ * Disable "Confirm email" in Supabase Auth for these to work without a mailbox.
+ */
 export function staffAuthEmail(staffNo: string) {
-  return `${staffNo}@staff.kidright.internal`;
+  const safe = staffNo.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+  return `staff.${safe}@auth.kidright.ac.ke`;
 }
 
 export function studentAuthEmail(admissionNo: string) {
-  const safe = admissionNo.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
-  return `${safe}@student.kidright.internal`;
+  const safe = admissionNo.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase().replace(/-+/g, "-");
+  return `student.${safe}@auth.kidright.ac.ke`;
 }
 
 export function parentAuthEmail(phoneOrEmail: string) {
   if (phoneOrEmail.includes("@")) return phoneOrEmail.trim().toLowerCase();
   const digits = phoneOrEmail.replace(/\D/g, "");
-  return `${digits}@parent.kidright.internal`;
+  return `parent.${digits}@auth.kidright.ac.ke`;
 }
 
 export async function allocateStaffNumber(): Promise<string> {
   const sb = getSupabase();
   const { data, error } = await sb.rpc("next_staff_no");
   if (error || !data) {
-    // Fallback: random unique-looking 10-digit (collision checked by unique constraint)
     const n = String(Math.floor(1_000_000_000 + Math.random() * 8_999_999_999));
     return n.padStart(10, "0").slice(0, 10);
   }
@@ -84,7 +88,6 @@ export interface RegisterParentInput {
 
 async function createAuthUser(email: string, password: string, meta: Record<string, string>) {
   const sb = getSupabase();
-  // Registrar uses signUp; in production prefer inviteUserByEmail with service role.
   const { data, error } = await sb.auth.signUp({
     email,
     password,
@@ -132,6 +135,7 @@ export async function registerTeacher(input: RegisterTeacherInput) {
   const user = await createAuthUser(loginEmail, input.password, {
     full_name: input.fullName,
     role: "teacher",
+    login_id: staffNo,
   });
 
   await sb.from("profiles").upsert({
@@ -185,6 +189,7 @@ export async function registerSupportStaff(input: RegisterSupportInput) {
   const user = await createAuthUser(loginEmail, input.password, {
     full_name: input.fullName,
     role: "staff",
+    login_id: staffNo,
   });
 
   await sb.from("profiles").upsert({
@@ -232,6 +237,7 @@ export async function registerStudent(input: RegisterStudentInput) {
   const user = await createAuthUser(loginEmail, input.password, {
     full_name: `${input.firstName} ${input.lastName}`,
     role: "student",
+    login_id: input.admissionNo,
   });
 
   await sb.from("profiles").upsert({
@@ -258,6 +264,7 @@ export async function registerParent(input: RegisterParentInput) {
   const user = await createAuthUser(loginEmail, input.password, {
     full_name: input.fullName,
     role: "parent",
+    login_id: input.phone.replace(/\D/g, ""),
   });
 
   await sb.from("profiles").upsert({
