@@ -30,7 +30,7 @@ function SignupPage() {
       const loginId=phone.replace(/\D/g,"")||phone.trim();
       const result=await registerAccount({loginId,password,fullName:fullName.trim(),role:"parent",parentPhone:phone.trim(),email:email.trim()});
       if(!result.ok) throw new Error(result.error);
-      setMessage("Parent account created. You can now sign in with your phone number or email and password. Password reset links will be sent to this email.");
+      setMessage(result.needsEmailConfirmation\n        ? "Parent account created. Check your email and click the confirmation link before signing in. You can then sign in with your phone number or email and password."\n        : "Parent account created. You can now sign in with your phone number or email and password.");
       setPassword(""); setConfirm("");
     }catch(err){setError(err instanceof Error?err.message:"Sign up failed");}
     finally{setLoading(false);}
