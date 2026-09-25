@@ -11,7 +11,6 @@ import type { Session } from "@supabase/supabase-js";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import type { Profile } from "@/lib/database.types";
 import type { Role, User } from "@/lib/types";
-import { staffAuthEmail, studentAuthEmail, parentAuthEmail } from "@/services/registration";
 
 interface AuthContextValue {
   ready: boolean;
@@ -19,8 +18,8 @@ interface AuthContextValue {
   session: Session | null;
   user: User | null;
   profile: Profile | null;
-  /** Email or staff number / admission number / parent phone */
-  signIn: (loginId: string, password: string) => Promise<{ ok: boolean; error?: string }>;
+  signIn: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
+  signUp: (email: string, password: string, fullName: string) => Promise<{ ok: boolean; error?: string; needsConfirmation?: boolean }>;
   signOut: () => Promise<void>;
   portalPath: (role?: Role) => string;
 }
@@ -32,66 +31,10 @@ function profileToUser(p: Profile): User {
     id: p.id,
     name: p.full_name || p.email,
     email: p.email,
-    role: p.role as Role,
+    role: p.role,
     studentId: p.student_id,
     staffId: p.staff_id,
-    loginId: (p as Profile & { login_id?: string }).login_id ?? null,
   };
-}
-
-async function resolveEmail(loginId: string): Promise<string> {
-  const raw = loginId.trim();
-  if (raw.includes("@")) return raw.toLowerCase();
-
-  const sb = getSupabase();
-
-  // RPC if available
-  try {
-    const { data } = await sb.rpc("resolve_login_email", { p_login_id: raw });
-    if (data && typeof data === "string") return data;
-  } catch {
-    /* fall through */
-  }
-
-  // Profile login_id
-  const { data: prof } = await sb.from("profiles").select("email").eq("login_id", raw).maybeSingle();
-  if (prof?.email) return prof.email;
-
-  // 10-digit staff number
-  if (/^\d{10}$/.test(raw)) {
-    const { data: staff } = await sb
-      .from("staff")
-      .select("login_email, email")
-      .eq("staff_no", raw)
-      .maybeSingle();
-    if (staff?.login_email) return staff.login_email;
-    if (staff?.email) return staff.email;
-    return staffAuthEmail(raw);
-  }
-
-  // Admission number pattern
-  if (/^[A-Za-z0-9/\-]+$/.test(raw) && raw.length >= 4) {
-    const { data: st } = await sb
-      .from("students")
-      .select("admission_no")
-      .eq("admission_no", raw)
-      .maybeSingle();
-    if (st) return studentAuthEmail(raw);
-  }
-
-  // Parent phone digits
-  const digits = raw.replace(/\D/g, "");
-  if (digits.length >= 9) {
-    const { data: p } = await sb
-      .from("profiles")
-      .select("email")
-      .eq("login_id", digits)
-      .maybeSingle();
-    if (p?.email) return p.email;
-    return parentAuthEmail(digits);
-  }
-
-  return raw;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -135,8 +78,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       data: { subscription },
     } = sb.auth.onAuthStateChange((_event, next) => {
       setSession(next);
-      if (next?.user) void loadProfile(next.user.id);
-      else setProfile(null);
+      if (next?.user) {
+        void loadProfile(next.user.id);
+      } else {
+        setProfile(null);
+      }
     });
 
     return () => {
@@ -145,27 +91,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [configured, loadProfile]);
 
-  const signIn = useCallback(
-    async (loginId: string, password: string) => {
-      if (!isSupabaseConfigured()) {
-        return {
-          ok: false,
-          error: "Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.",
-        };
-      }
-      try {
-        const email = await resolveEmail(loginId);
-        const sb = getSupabase();
-        const { data, error } = await sb.auth.signInWithPassword({ email, password });
-        if (error) return { ok: false, error: error.message };
-        if (data.user) await loadProfile(data.user.id);
-        return { ok: true };
-      } catch (e) {
-        return { ok: false, error: e instanceof Error ? e.message : "Sign in failed" };
-      }
-    },
-    [loadProfile],
-  );
+  const signIn = useCallback(async (email: string, password: string) => {
+    if (!isSupabaseConfigured()) {
+      return {
+        ok: false,
+        error: "Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.",
+      };
+    }
+    const sb = getSupabase();
+    const { data, error } = await sb.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+    if (error) return { ok: false, error: error.message };
+    if (data.user) await loadProfile(data.user.id);
+    return { ok: true };
+  }, [loadProfile]);
+
+  const signUp = useCallback(async (email: string, password: string, fullName: string) => {
+    if (!isSupabaseConfigured()) {
+      return { ok: false, error: "Supabase is not configured." };
+    }
+    const sb = getSupabase();
+    const { data, error } = await sb.auth.signUp({
+      email: email.trim(),
+      password,
+      options: { data: { full_name: fullName.trim() } },
+    });
+    if (error) return { ok: false, error: error.message };
+    if (data.user && data.session) await loadProfile(data.user.id);
+    return { ok: true, needsConfirmation: !data.session };
+  }, [loadProfile]);
 
   const signOut = useCallback(async () => {
     if (!isSupabaseConfigured()) return;
@@ -174,24 +130,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
   }, []);
 
-  const portalPath = useCallback(
-    (role?: Role) => {
-      const r = role ?? (profile?.role as Role | undefined);
-      if (r === "admin" || r === "registrar") return "/admin";
-      if (r === "teacher") return "/staff";
-      if (r === "staff") return "/staff";
-      if (r === "student") return "/student";
-      if (r === "parent") return "/parent";
-      return "/";
-    },
-    [profile?.role],
-  );
+  const portalPath = useCallback((role?: Role) => {
+    const r = role ?? profile?.role;
+    if (r === "admin") return "/admin";
+    if (r === "staff") return "/staff";
+    if (r === "student") return "/student";
+    return "/";
+  }, [profile?.role]);
 
   const user = profile ? profileToUser(profile) : null;
 
   const value = useMemo(
-    () => ({ ready, configured, session, user, profile, signIn, signOut, portalPath }),
-    [ready, configured, session, user, profile, signIn, signOut, portalPath],
+    () => ({ ready, configured, session, user, profile, signIn, signUp, signOut, portalPath }),
+    [ready, configured, session, user, profile, signIn, signUp, signOut, portalPath],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
