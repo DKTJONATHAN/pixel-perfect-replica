@@ -103,6 +103,7 @@ export async function registerTeacher(input: RegisterTeacherInput) {
     password: input.password,
     fullName: input.fullName,
     role: "teacher",
+    email: input.email,
   });
   if (!acc.ok) throw new Error(acc.error);
 
@@ -153,6 +154,7 @@ export async function registerSupportStaff(input: RegisterSupportInput) {
     password: input.password,
     fullName: input.fullName,
     role: "staff",
+    email: input.email,
   });
   if (!acc.ok) throw new Error(acc.error);
 
@@ -218,6 +220,7 @@ export async function registerParent(input: RegisterParentInput) {
     fullName: input.fullName,
     role: "parent",
     parentPhone: input.phone,
+    email: input.email,
   });
   if (!acc.ok) throw new Error(acc.error);
 
