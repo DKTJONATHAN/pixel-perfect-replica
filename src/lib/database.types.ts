@@ -10,12 +10,12 @@ export interface Database {
         Row: {
           id: string; email: string; full_name: string; role: AppRole;
           student_id: string | null; staff_id: string | null; login_id: string | null;
-          parent_phone: string | null; created_at: string; updated_at: string;
+          parent_phone: string | null; auth_user_id: string | null; created_at: string; updated_at: string;
         };
         Insert: {
           id: string; email: string; full_name?: string; role?: AppRole;
           student_id?: string | null; staff_id?: string | null; login_id?: string | null;
-          parent_phone?: string | null;
+          parent_phone?: string | null; auth_user_id?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
       };
@@ -71,6 +71,7 @@ export interface Database {
       resolve_login_email: { Args: { p_login_id: string }; Returns: string };
       login_account: { Args: { p_login_id: string; p_password: string }; Returns: Json };
       register_account: { Args: { p_login_id: string; p_password: string; p_full_name: string; p_role: string; p_parent_phone?: string | null }; Returns: Json };
+      register_account_with_email: { Args: { p_login_id: string; p_password: string; p_full_name: string; p_role: string; p_email?: string | null; p_parent_phone?: string | null }; Returns: Json };
     };
     Enums: { app_role: AppRole };
   };
