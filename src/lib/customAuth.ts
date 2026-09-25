@@ -22,7 +22,6 @@ async function establish(profile: SessionProfile, secret: string) {
 
   let result = await sb.auth.signInWithPassword({ email, password: secret });
   let user = result.data.user;
-  let needsEmailConfirmation = false;
 
   if (!user) {
     const created = await sb.auth.signUp({
@@ -42,10 +41,6 @@ async function establish(profile: SessionProfile, secret: string) {
     }
 
     user = created.data.user;
-    needsEmailConfirmation = Boolean(user && !created.data.session);
-
-    // With email confirmations enabled, Supabase intentionally returns no session
-    // until the user clicks the confirmation link. Do not treat that as a failed signup.
     if (!user) {
       return { ok: false as const, error: "Could not create the authentication account." };
     }
@@ -64,7 +59,6 @@ async function establish(profile: SessionProfile, secret: string) {
   return {
     ok: true as const,
     profile: data as SessionProfile,
-    needsEmailConfirmation,
   };
 }
 
