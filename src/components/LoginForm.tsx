@@ -5,21 +5,53 @@ import { useAuth } from "@/context/AuthProvider";
 import type { Role } from "@/lib/types";
 import { Button, Input } from "@/components/UI";
 
-export function LoginForm({ role, title }: { role: Role; title: string }) {
+const LOGIN_HINT: Partial<Record<Role, string>> = {
+  student: "Admission number",
+  teacher: "10-digit staff number",
+  staff: "10-digit staff number",
+  parent: "Phone number or email",
+  admin: "Email address",
+  registrar: "Email address",
+};
+
+const ALLOWED: Record<string, Role[]> = {
+  student: ["student"],
+  staff: ["staff", "teacher"],
+  admin: ["admin", "registrar"],
+  parent: ["parent"],
+};
+
+export function LoginForm({
+  role,
+  title,
+}: {
+  role: "student" | "staff" | "admin" | "parent";
+  title: string;
+}) {
   const { ready, user, configured, signIn, portalPath } = useAuth();
   const nav = useNavigate();
-  const [email, setEmail] = useState("");
+  const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const hint =
+    role === "staff"
+      ? "10-digit staff number"
+      : role === "student"
+        ? "Admission number"
+        : role === "parent"
+          ? "Phone number or email"
+          : "Email address";
+
   useEffect(() => {
     if (ready && user) {
-      if (user.role !== role) {
-        setError(`This account is registered as ${user.role}, not ${role}.`);
+      const okRoles = ALLOWED[role] ?? [role];
+      if (!okRoles.includes(user.role)) {
+        setError(`This account is registered as ${user.role}, not for this portal.`);
         return;
       }
-      nav({ to: portalPath(role) });
+      nav({ to: portalPath(user.role) });
     }
   }, [ready, user, role, nav, portalPath]);
 
@@ -27,12 +59,9 @@ export function LoginForm({ role, title }: { role: Role; title: string }) {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const result = await signIn(email, password);
+    const result = await signIn(loginId, password);
     setLoading(false);
-    if (!result.ok) {
-      setError(result.error ?? "Sign in failed");
-      return;
-    }
+    if (!result.ok) setError(result.error ?? "Sign in failed");
   }
 
   return (
@@ -51,9 +80,10 @@ export function LoginForm({ role, title }: { role: Role; title: string }) {
             </div>
             <div className="mt-28 max-w-xl">
               <p className="text-sm font-semibold uppercase tracking-widest text-accent">{title}</p>
-              <h1 className="mt-4 font-display text-4xl font-bold">Secure access for your role.</h1>
+              <h1 className="mt-4 font-display text-4xl font-bold">Sign in with your school ID.</h1>
               <p className="mt-5 text-sidebar-foreground/65">
-                Sign in with the email and password provided by the school administration.
+                Staff and teachers use their 10-digit staff number. Students use their admission
+                number. Accounts are created by the registrar after employment or admission.
               </p>
             </div>
           </div>
@@ -70,26 +100,25 @@ export function LoginForm({ role, title }: { role: Role; title: string }) {
                   <LockKeyhole />
                 </div>
                 <h2 className="font-display text-2xl font-bold">{title}</h2>
-                <p className="text-sm text-muted-foreground">Enter your credentials to continue.</p>
+                <p className="text-sm text-muted-foreground">Use the credentials issued by the school.</p>
               </div>
 
               {!configured && (
                 <div className="mb-4 rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm">
                   Supabase is not configured. Add <code>VITE_SUPABASE_URL</code> and{" "}
-                  <code>VITE_SUPABASE_ANON_KEY</code> to <code>.env.local</code>.
+                  <code>VITE_SUPABASE_ANON_KEY</code>.
                 </div>
               )}
 
               <form className="space-y-4" onSubmit={onSubmit}>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium">Email</label>
+                  <label className="mb-1.5 block text-sm font-medium">{hint}</label>
                   <Input
-                    type="email"
-                    autoComplete="email"
                     required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder={`${role}@kidright.ac.ke`}
+                    value={loginId}
+                    onChange={(e) => setLoginId(e.target.value)}
+                    placeholder={hint}
+                    autoComplete="username"
                   />
                 </div>
                 <div>
@@ -109,9 +138,10 @@ export function LoginForm({ role, title }: { role: Role; title: string }) {
               </form>
 
               <p className="mt-6 text-center text-sm text-muted-foreground">
-                Wrong portal?{" "}
+                Need an account? Contact the registrar — they register staff and students after
+                employment or admission.{" "}
                 <Link to="/login" className="text-primary hover:underline">
-                  Choose another
+                  Other portals
                 </Link>
               </p>
             </div>
