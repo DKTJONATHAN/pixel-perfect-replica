@@ -1,18 +1,38 @@
-// Domain types for KidRight Academy (mapped from Supabase rows).
+// Domain types for KidRight Academy.
 
-export type Role = "admin" | "staff" | "student";
+export type Role = "admin" | "registrar" | "teacher" | "staff" | "student" | "parent";
 
 export type StudentStatus = "Active" | "Transferred" | "Graduated" | "Suspended";
 export type StaffStatus = "Active" | "On Leave" | "Terminated";
 export type Gender = "Male" | "Female";
 export type AttendanceStatus = "Present" | "Absent" | "Late";
 export type EmploymentType = "Full-time" | "Part-time" | "Contract";
+export type StaffCategory = "Teacher" | "Support";
+export type TeacherEmployment = "TSC" | "BOM" | "PTA";
+export type SupportDepartment =
+  | "Administration"
+  | "Accounts"
+  | "Library"
+  | "Kitchen"
+  | "Cleaning"
+  | "Transport"
+  | "Security"
+  | "Grounds"
+  | "Clinic"
+  | "Other";
+
 export type StaffRole =
   | "Teacher"
   | "Administrator"
   | "Accountant"
   | "Librarian"
-  | "Support Staff";
+  | "Support Staff"
+  | "Cook"
+  | "Cleaner"
+  | "Driver"
+  | "Security"
+  | "Nurse";
+
 export type LeaveStatus = "Pending" | "Approved" | "Rejected";
 
 export interface User {
@@ -22,6 +42,7 @@ export interface User {
   role: Role;
   studentId?: string | null;
   staffId?: string | null;
+  loginId?: string | null;
 }
 
 export interface SchoolClass {
@@ -72,6 +93,12 @@ export interface Staff {
   salary: number;
   status: StaffStatus;
   archived?: boolean;
+  staffCategory: StaffCategory;
+  teacherEmployment?: TeacherEmployment | null;
+  tscRegistered: boolean;
+  tscNumber?: string | null;
+  supportDepartment?: SupportDepartment | null;
+  loginEmail?: string | null;
 }
 
 export interface AttendanceRecord {
@@ -155,6 +182,16 @@ export interface SchoolData {
   settings: Settings;
 }
 
+/** Computed term result for one student. */
+export interface StudentTermResult {
+  studentId: string;
+  term: string;
+  subjects: { subject: string; score: number; grade: string }[];
+  total: number;
+  average: number;
+  overallGrade: string;
+}
+
 export const SUBJECTS = [
   "Mathematics",
   "English",
@@ -162,6 +199,21 @@ export const SUBJECTS = [
   "Science",
   "Social Studies",
   "Creative Arts",
+  "Religious Education",
+  "Physical Education",
 ];
 
 export const TERMS = ["Term 1", "Term 2", "Term 3"];
+
+export const SUPPORT_DEPARTMENTS: SupportDepartment[] = [
+  "Administration",
+  "Accounts",
+  "Library",
+  "Kitchen",
+  "Cleaning",
+  "Transport",
+  "Security",
+  "Grounds",
+  "Clinic",
+  "Other",
+];
