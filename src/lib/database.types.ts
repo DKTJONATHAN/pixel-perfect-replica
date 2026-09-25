@@ -1,7 +1,7 @@
 /** Minimal typed shape for Supabase tables used by the app. */
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
-export type AppRole = "admin" | "staff" | "student";
+export type AppRole = "admin" | "registrar" | "teacher" | "staff" | "student" | "parent";
 
 export interface Database {
   public: {
@@ -14,6 +14,8 @@ export interface Database {
           role: AppRole;
           student_id: string | null;
           staff_id: string | null;
+          login_id: string | null;
+          parent_phone: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -24,6 +26,8 @@ export interface Database {
           role?: AppRole;
           student_id?: string | null;
           staff_id?: string | null;
+          login_id?: string | null;
+          parent_phone?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
       };
@@ -87,11 +91,15 @@ export interface Database {
           status: string;
           archived: boolean;
           created_at: string;
+          staff_category: string;
+          teacher_employment: string | null;
+          tsc_registered: boolean;
+          tsc_number: string | null;
+          support_department: string | null;
+          login_email: string | null;
         };
-        Insert: Omit<Database["public"]["Tables"]["staff"]["Row"], "id" | "created_at"> & {
-          id?: string;
-        };
-        Update: Partial<Database["public"]["Tables"]["staff"]["Insert"]>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
       };
       students: {
         Row: {
@@ -114,10 +122,8 @@ export interface Database {
           archived: boolean;
           created_at: string;
         };
-        Insert: Omit<Database["public"]["Tables"]["students"]["Row"], "id" | "created_at"> & {
-          id?: string;
-        };
-        Update: Partial<Database["public"]["Tables"]["students"]["Insert"]>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
       };
       attendance: {
         Row: {
@@ -127,14 +133,8 @@ export interface Database {
           class_id: string | null;
           status: string;
         };
-        Insert: {
-          id?: string;
-          date: string;
-          student_id: string;
-          class_id?: string | null;
-          status?: string;
-        };
-        Update: Partial<Database["public"]["Tables"]["attendance"]["Insert"]>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
       };
       grades: {
         Row: {
@@ -165,17 +165,8 @@ export interface Database {
           note: string | null;
           created_at: string;
         };
-        Insert: {
-          id?: string;
-          receipt_no: string;
-          student_id: string;
-          term: string;
-          amount: number;
-          date?: string;
-          method?: string;
-          note?: string | null;
-        };
-        Update: Partial<Database["public"]["Tables"]["payments"]["Insert"]>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
       };
       leave_requests: {
         Row: {
@@ -189,18 +180,8 @@ export interface Database {
           status: string;
           requested_at: string;
         };
-        Insert: {
-          id?: string;
-          staff_id: string;
-          type: string;
-          date_from: string;
-          date_to: string;
-          days: number;
-          reason: string;
-          status?: string;
-          requested_at?: string;
-        };
-        Update: Partial<Database["public"]["Tables"]["leave_requests"]["Insert"]>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
       };
       activity_log: {
         Row: {
@@ -209,17 +190,30 @@ export interface Database {
           actor: string;
           message: string;
         };
+        Insert: { actor: string; message: string; at?: string; id?: string };
+        Update: Record<string, unknown>;
+      };
+      parent_students: {
+        Row: {
+          id: string;
+          parent_profile_id: string;
+          student_id: string;
+          relationship: string;
+        };
         Insert: {
           id?: string;
-          at?: string;
-          actor: string;
-          message: string;
+          parent_profile_id: string;
+          student_id: string;
+          relationship?: string;
         };
-        Update: Partial<Database["public"]["Tables"]["activity_log"]["Insert"]>;
+        Update: Partial<Database["public"]["Tables"]["parent_students"]["Insert"]>;
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      next_staff_no: { Args: Record<string, never>; Returns: string };
+      resolve_login_email: { Args: { p_login_id: string }; Returns: string };
+    };
     Enums: {
       app_role: AppRole;
     };

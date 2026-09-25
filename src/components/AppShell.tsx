@@ -1,5 +1,5 @@
 /**
- * Authenticated layout for student / staff / admin portals.
+ * Authenticated layout for student / staff / admin / parent portals.
  */
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
@@ -13,10 +13,12 @@ import {
   Menu,
   Moon,
   PanelLeftClose,
+  PenLine,
   Plane,
   School,
   Settings as SettingsIcon,
   Sun,
+  UserPlus,
   Users,
   Wallet,
   X,
@@ -34,11 +36,17 @@ type NavItem = {
   permission?: Permission;
 };
 
-const NAV_BY_PORTAL: Record<Role, { group: string; items: NavItem[] }[]> = {
+const NAV_BY_PORTAL: Record<string, { group: string; items: NavItem[] }[]> = {
   student: [
     {
       group: "My learning",
       items: [{ to: "/student", label: "Dashboard", icon: LayoutDashboard }],
+    },
+  ],
+  parent: [
+    {
+      group: "Family",
+      items: [{ to: "/parent", label: "Children", icon: LayoutDashboard }],
     },
   ],
   staff: [
@@ -57,14 +65,18 @@ const NAV_BY_PORTAL: Record<Role, { group: string; items: NavItem[] }[]> = {
           icon: CalendarCheck,
           permission: "attendance.mark",
         },
-        { to: "/staff/grades", label: "Grades", icon: ClipboardList, permission: "grades.edit" },
+        { to: "/staff/marks", label: "Enter marks", icon: PenLine, permission: "grades.edit" },
+        { to: "/staff/grades", label: "Grades list", icon: ClipboardList, permission: "grades.edit" },
       ],
     },
   ],
   admin: [
     {
       group: "Overview",
-      items: [{ to: "/admin", label: "Dashboard", icon: LayoutDashboard }],
+      items: [
+        { to: "/admin", label: "Dashboard", icon: LayoutDashboard },
+        { to: "/admin/register", label: "Registration", icon: UserPlus, permission: "register.manage" },
+      ],
     },
     {
       group: "Students",
@@ -97,6 +109,21 @@ const NAV_BY_PORTAL: Record<Role, { group: string; items: NavItem[] }[]> = {
     },
   ],
 };
+
+function portalHome(role: Role): string {
+  if (role === "admin" || role === "registrar") return "/admin";
+  if (role === "teacher" || role === "staff") return "/staff";
+  if (role === "parent") return "/parent";
+  return "/student";
+}
+
+function canAccessPortal(userRole: Role, portal: Role): boolean {
+  if (portal === "admin") return userRole === "admin" || userRole === "registrar";
+  if (portal === "staff") return userRole === "staff" || userRole === "teacher" || userRole === "admin";
+  if (portal === "student") return userRole === "student";
+  if (portal === "parent") return userRole === "parent";
+  return userRole === portal;
+}
 
 export function Logo({ compact = false }: { compact?: boolean }) {
   return (
@@ -138,14 +165,24 @@ export function AppShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
+  const shellKey = portal === "parent" ? "parent" : portal === "student" ? "student" : portal === "admin" ? "admin" : "staff";
+
   useEffect(() => {
     if (!authReady) return;
     if (!user) {
-      navigate({ to: `/login/${portal}` });
+      const login =
+        portal === "parent"
+          ? "/login/parent"
+          : portal === "student"
+            ? "/login/student"
+            : portal === "admin"
+              ? "/login/admin"
+              : "/login/staff";
+      navigate({ to: login });
       return;
     }
-    if (user.role !== portal && !(portal === "staff" && user.role === "admin")) {
-      navigate({ to: user.role === "admin" ? "/admin" : user.role === "staff" ? "/staff" : "/student" });
+    if (!canAccessPortal(user.role, portal === "staff" ? "staff" : portal)) {
+      navigate({ to: portalHome(user.role) });
     }
   }, [authReady, user, portal, navigate]);
 
@@ -164,7 +201,7 @@ export function AppShell({
           <p className="mt-2 text-sm text-muted-foreground">
             Your account is signed in as {roleLabel(user.role)}.
           </p>
-          <Button className="mt-5" onClick={() => navigate({ to: `/${portal}` })}>
+          <Button className="mt-5" onClick={() => navigate({ to: portalHome(user.role) })}>
             Back to dashboard
           </Button>
         </div>
@@ -172,7 +209,8 @@ export function AppShell({
     );
   }
 
-  const nav = NAV_BY_PORTAL[portal]
+  const navGroups = NAV_BY_PORTAL[shellKey] ?? [];
+  const nav = navGroups
     .map((g) => ({
       ...g,
       items: g.items.filter((i) => !i.permission || can(i.permission)),
@@ -215,7 +253,7 @@ export function AppShell({
                 {group.items.map((item) => {
                   const active =
                     pathname === item.to ||
-                    (item.to !== `/${portal}` && pathname.startsWith(`${item.to}`));
+                    (item.to !== portalHome(portal) && pathname.startsWith(item.to));
                   return (
                     <li key={item.to}>
                       <Link
@@ -317,6 +355,9 @@ export function AppShell({
 
 export function roleLabel(role: string) {
   if (role === "admin") return "Administrator";
+  if (role === "registrar") return "Registrar";
+  if (role === "teacher") return "Teacher";
   if (role === "staff") return "Staff";
+  if (role === "parent") return "Parent";
   return "Student";
 }
