@@ -1,4 +1,4 @@
-import { createIsolatedSupabaseClient, getSupabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 import type { Profile } from "@/lib/database.types";
 import type { Role } from "@/lib/types";
 
