@@ -1,0 +1,123 @@
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { ArrowRight, LockKeyhole, School } from "lucide-react";
+import { useAuth } from "@/context/AuthProvider";
+import type { Role } from "@/lib/types";
+import { Button, Input } from "@/components/UI";
+
+export function LoginForm({ role, title }: { role: Role; title: string }) {
+  const { ready, user, configured, signIn, portalPath } = useAuth();
+  const nav = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (ready && user) {
+      if (user.role !== role) {
+        setError(`This account is registered as ${user.role}, not ${role}.`);
+        return;
+      }
+      nav({ to: portalPath(role) });
+    }
+  }, [ready, user, role, nav, portalPath]);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    const result = await signIn(email, password);
+    setLoading(false);
+    if (!result.ok) {
+      setError(result.error ?? "Sign in failed");
+      return;
+    }
+  }
+
+  return (
+    <main className="min-h-screen bg-background">
+      <div className="grid min-h-screen lg:grid-cols-2">
+        <section className="hidden bg-sidebar p-12 text-sidebar-foreground lg:flex lg:flex-col lg:justify-between">
+          <div>
+            <div className="flex items-center gap-3">
+              <div className="grid size-12 place-items-center rounded-2xl gradient-hero">
+                <School />
+              </div>
+              <div>
+                <b className="font-display text-xl">KidRight</b>
+                <p className="text-xs uppercase tracking-widest opacity-60">Academy</p>
+              </div>
+            </div>
+            <div className="mt-28 max-w-xl">
+              <p className="text-sm font-semibold uppercase tracking-widest text-accent">{title}</p>
+              <h1 className="mt-4 font-display text-4xl font-bold">Secure access for your role.</h1>
+              <p className="mt-5 text-sidebar-foreground/65">
+                Sign in with the email and password provided by the school administration.
+              </p>
+            </div>
+          </div>
+          <Link to="/" className="text-sm opacity-70 hover:opacity-100">
+            ← Back to public site
+          </Link>
+        </section>
+
+        <section className="flex items-center justify-center p-6">
+          <div className="w-full max-w-md">
+            <div className="surface-card p-8">
+              <div className="mb-7">
+                <div className="mb-3 grid size-11 place-items-center rounded-xl bg-primary-soft text-primary">
+                  <LockKeyhole />
+                </div>
+                <h2 className="font-display text-2xl font-bold">{title}</h2>
+                <p className="text-sm text-muted-foreground">Enter your credentials to continue.</p>
+              </div>
+
+              {!configured && (
+                <div className="mb-4 rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm">
+                  Supabase is not configured. Add <code>VITE_SUPABASE_URL</code> and{" "}
+                  <code>VITE_SUPABASE_ANON_KEY</code> to <code>.env.local</code>.
+                </div>
+              )}
+
+              <form className="space-y-4" onSubmit={onSubmit}>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium">Email</label>
+                  <Input
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={`${role}@kidright.ac.ke`}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium">Password</label>
+                  <Input
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                {error && <p className="text-sm text-destructive">{error}</p>}
+                <Button className="w-full" loading={loading} type="submit">
+                  Sign in <ArrowRight className="size-4" />
+                </Button>
+              </form>
+
+              <p className="mt-6 text-center text-sm text-muted-foreground">
+                Wrong portal?{" "}
+                <Link to="/login" className="text-primary hover:underline">
+                  Choose another
+                </Link>
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
