@@ -1,9 +1,10 @@
 /* eslint-disable */
 // @ts-nocheck
-// Manual route tree — includes all portal routes.
+// Nested /login layout with child portal forms.
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LoginIndexRouteImport } from './routes/login.index'
 import { Route as LoginStudentRouteImport } from './routes/login.student'
 import { Route as LoginStaffRouteImport } from './routes/login.staff'
 import { Route as LoginAdminRouteImport } from './routes/login.admin'
@@ -18,25 +19,106 @@ import { Route as AdminSectionRouteImport } from './routes/admin/$section'
 import { Route as AdminRegisterRouteImport } from './routes/admin/register'
 import { Route as ParentIndexRouteImport } from './routes/parent/index'
 
-const IndexRoute = IndexRouteImport.update({ id: '/', path: '/', getParentRoute: () => rootRouteImport } as any)
-const LoginRoute = LoginRouteImport.update({ id: '/login', path: '/login', getParentRoute: () => rootRouteImport } as any)
-const LoginStudentRoute = LoginStudentRouteImport.update({ id: '/login/student', path: '/login/student', getParentRoute: () => rootRouteImport } as any)
-const LoginStaffRoute = LoginStaffRouteImport.update({ id: '/login/staff', path: '/login/staff', getParentRoute: () => rootRouteImport } as any)
-const LoginAdminRoute = LoginAdminRouteImport.update({ id: '/login/admin', path: '/login/admin', getParentRoute: () => rootRouteImport } as any)
-const LoginParentRoute = LoginParentRouteImport.update({ id: '/login/parent', path: '/login/parent', getParentRoute: () => rootRouteImport } as any)
-const SignupRoute = SignupRouteImport.update({ id: '/signup', path: '/signup', getParentRoute: () => rootRouteImport } as any)
-const StudentIndexRoute = StudentIndexRouteImport.update({ id: '/student/', path: '/student/', getParentRoute: () => rootRouteImport } as any)
-const StaffIndexRoute = StaffIndexRouteImport.update({ id: '/staff/', path: '/staff/', getParentRoute: () => rootRouteImport } as any)
-const StaffMarksRoute = StaffMarksRouteImport.update({ id: '/staff/marks', path: '/staff/marks', getParentRoute: () => rootRouteImport } as any)
-const StaffSectionRoute = StaffSectionRouteImport.update({ id: '/staff/$section', path: '/staff/$section', getParentRoute: () => rootRouteImport } as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({ id: '/admin/', path: '/admin/', getParentRoute: () => rootRouteImport } as any)
-const AdminRegisterRoute = AdminRegisterRouteImport.update({ id: '/admin/register', path: '/admin/register', getParentRoute: () => rootRouteImport } as any)
-const AdminSectionRoute = AdminSectionRouteImport.update({ id: '/admin/$section', path: '/admin/$section', getParentRoute: () => rootRouteImport } as any)
-const ParentIndexRoute = ParentIndexRouteImport.update({ id: '/parent/', path: '/parent/', getParentRoute: () => rootRouteImport } as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
+const LoginIndexRoute = LoginIndexRouteImport.update({
+  id: '/login/',
+  path: '/',
+  getParentRoute: () => LoginRoute,
+} as any)
+
+const LoginStudentRoute = LoginStudentRouteImport.update({
+  id: '/login/student',
+  path: '/student',
+  getParentRoute: () => LoginRoute,
+} as any)
+
+const LoginStaffRoute = LoginStaffRouteImport.update({
+  id: '/login/staff',
+  path: '/staff',
+  getParentRoute: () => LoginRoute,
+} as any)
+
+const LoginAdminRoute = LoginAdminRouteImport.update({
+  id: '/login/admin',
+  path: '/admin',
+  getParentRoute: () => LoginRoute,
+} as any)
+
+const LoginParentRoute = LoginParentRouteImport.update({
+  id: '/login/parent',
+  path: '/parent',
+  getParentRoute: () => LoginRoute,
+} as any)
+
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
+const StudentIndexRoute = StudentIndexRouteImport.update({
+  id: '/student/',
+  path: '/student/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
+const StaffIndexRoute = StaffIndexRouteImport.update({
+  id: '/staff/',
+  path: '/staff/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
+const StaffMarksRoute = StaffMarksRouteImport.update({
+  id: '/staff/marks',
+  path: '/staff/marks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
+const StaffSectionRoute = StaffSectionRouteImport.update({
+  id: '/staff/$section',
+  path: '/staff/$section',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
+const AdminRegisterRoute = AdminRegisterRouteImport.update({
+  id: '/admin/register',
+  path: '/admin/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
+const AdminSectionRoute = AdminSectionRouteImport.update({
+  id: '/admin/$section',
+  path: '/admin/$section',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
+const ParentIndexRoute = ParentIndexRouteImport.update({
+  id: '/parent/',
+  path: '/parent/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/login': typeof LoginRoute
+  '/login': typeof LoginRouteWithChildren
+  '/login/': typeof LoginIndexRoute
   '/login/student': typeof LoginStudentRoute
   '/login/staff': typeof LoginStaffRoute
   '/login/admin': typeof LoginAdminRoute
@@ -53,7 +135,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/login': typeof LoginRoute
+  '/login': typeof LoginIndexRoute
   '/login/student': typeof LoginStudentRoute
   '/login/staff': typeof LoginStaffRoute
   '/login/admin': typeof LoginAdminRoute
@@ -71,7 +153,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/login': typeof LoginRoute
+  '/login': typeof LoginRouteWithChildren
+  '/login/': typeof LoginIndexRoute
   '/login/student': typeof LoginStudentRoute
   '/login/staff': typeof LoginStaffRoute
   '/login/admin': typeof LoginAdminRoute
@@ -96,11 +179,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  LoginRoute: typeof LoginRoute
-  LoginStudentRoute: typeof LoginStudentRoute
-  LoginStaffRoute: typeof LoginStaffRoute
-  LoginAdminRoute: typeof LoginAdminRoute
-  LoginParentRoute: typeof LoginParentRoute
+  LoginRoute: typeof LoginRouteWithChildren
   SignupRoute: typeof SignupRoute
   StudentIndexRoute: typeof StudentIndexRoute
   StaffIndexRoute: typeof StaffIndexRoute
@@ -111,14 +190,16 @@ export interface RootRouteChildren {
   AdminSectionRoute: typeof AdminSectionRoute
   ParentIndexRoute: typeof ParentIndexRoute
 }
+
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/': { id: '/'; path: '/'; fullPath: '/'; preLoaderRoute: typeof IndexRouteImport; parentRoute: typeof rootRouteImport }
     '/login': { id: '/login'; path: '/login'; fullPath: '/login'; preLoaderRoute: typeof LoginRouteImport; parentRoute: typeof rootRouteImport }
-    '/login/student': { id: '/login/student'; path: '/login/student'; fullPath: '/login/student'; preLoaderRoute: typeof LoginStudentRouteImport; parentRoute: typeof rootRouteImport }
-    '/login/staff': { id: '/login/staff'; path: '/login/staff'; fullPath: '/login/staff'; preLoaderRoute: typeof LoginStaffRouteImport; parentRoute: typeof rootRouteImport }
-    '/login/admin': { id: '/login/admin'; path: '/login/admin'; fullPath: '/login/admin'; preLoaderRoute: typeof LoginAdminRouteImport; parentRoute: typeof rootRouteImport }
-    '/login/parent': { id: '/login/parent'; path: '/login/parent'; fullPath: '/login/parent'; preLoaderRoute: typeof LoginParentRouteImport; parentRoute: typeof rootRouteImport }
+    '/login/': { id: '/login/'; path: '/'; fullPath: '/login/'; preLoaderRoute: typeof LoginIndexRouteImport; parentRoute: typeof LoginRoute }
+    '/login/student': { id: '/login/student'; path: '/student'; fullPath: '/login/student'; preLoaderRoute: typeof LoginStudentRouteImport; parentRoute: typeof LoginRoute }
+    '/login/staff': { id: '/login/staff'; path: '/staff'; fullPath: '/login/staff'; preLoaderRoute: typeof LoginStaffRouteImport; parentRoute: typeof LoginRoute }
+    '/login/admin': { id: '/login/admin'; path: '/admin'; fullPath: '/login/admin'; preLoaderRoute: typeof LoginAdminRouteImport; parentRoute: typeof LoginRoute }
+    '/login/parent': { id: '/login/parent'; path: '/parent'; fullPath: '/login/parent'; preLoaderRoute: typeof LoginParentRouteImport; parentRoute: typeof LoginRoute }
     '/signup': { id: '/signup'; path: '/signup'; fullPath: '/signup'; preLoaderRoute: typeof SignupRouteImport; parentRoute: typeof rootRouteImport }
     '/student/': { id: '/student/'; path: '/student'; fullPath: '/student/'; preLoaderRoute: typeof StudentIndexRouteImport; parentRoute: typeof rootRouteImport }
     '/staff/': { id: '/staff/'; path: '/staff'; fullPath: '/staff/'; preLoaderRoute: typeof StaffIndexRouteImport; parentRoute: typeof rootRouteImport }
@@ -130,13 +211,28 @@ declare module '@tanstack/react-router' {
     '/parent/': { id: '/parent/'; path: '/parent'; fullPath: '/parent/'; preLoaderRoute: typeof ParentIndexRouteImport; parentRoute: typeof rootRouteImport }
   }
 }
-const rootRouteChildren: RootRouteChildren = {
-  IndexRoute,
-  LoginRoute,
+
+interface LoginRouteChildren {
+  LoginIndexRoute: typeof LoginIndexRoute
+  LoginStudentRoute: typeof LoginStudentRoute
+  LoginStaffRoute: typeof LoginStaffRoute
+  LoginAdminRoute: typeof LoginAdminRoute
+  LoginParentRoute: typeof LoginParentRoute
+}
+
+const LoginRouteChildren: LoginRouteChildren = {
+  LoginIndexRoute,
   LoginStudentRoute,
   LoginStaffRoute,
   LoginAdminRoute,
   LoginParentRoute,
+}
+
+const LoginRouteWithChildren = LoginRoute._addFileChildren(LoginRouteChildren)
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute,
+  LoginRoute: LoginRouteWithChildren,
   SignupRoute,
   StudentIndexRoute,
   StaffIndexRoute,
@@ -147,7 +243,11 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSectionRoute,
   ParentIndexRoute,
 }
-export const routeTree = rootRouteImport._addFileChildren(rootRouteChildren)._addFileTypes<FileRouteTypes>()
+
+export const routeTree = rootRouteImport
+  ._addFileChildren(rootRouteChildren)
+  ._addFileTypes<FileRouteTypes>()
+
 import type { getRouter } from './router.tsx'
 import type { startInstance } from './start.ts'
 declare module '@tanstack/react-start' {
