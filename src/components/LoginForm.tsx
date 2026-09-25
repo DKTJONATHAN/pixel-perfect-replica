@@ -135,7 +135,7 @@ export function LoginForm({
 
               <p className="mt-6 text-center text-sm text-muted-foreground">
                 No account?{" "}
-                <a href="/signup" className="text-primary hover:underline">
+                <a href={`/signup?role=${role}`} className="text-primary hover:underline">
                   Sign up
                 </a>
                 {" · "}
