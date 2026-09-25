@@ -1,18 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, LockKeyhole, School } from "lucide-react";
 import { useAuth } from "@/context/AuthProvider";
 import type { Role } from "@/lib/types";
 import { Button, Input } from "@/components/UI";
-
-const LOGIN_HINT: Partial<Record<Role, string>> = {
-  student: "Admission number",
-  teacher: "10-digit staff number",
-  staff: "10-digit staff number",
-  parent: "Phone number or email",
-  admin: "Email address",
-  registrar: "Email address",
-};
 
 const ALLOWED: Record<string, Role[]> = {
   student: ["student"],
@@ -51,9 +42,11 @@ export function LoginForm({
         setError(`This account is registered as ${user.role}, not for this portal.`);
         return;
       }
-      nav({ to: portalPath(user.role) });
+      const path = portalPath(user.role);
+      // Full page navigation so it works even if the SPA router is stuck
+      window.location.assign(path);
     }
-  }, [ready, user, role, nav, portalPath]);
+  }, [ready, user, role, portalPath]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -90,9 +83,9 @@ export function LoginForm({
               </p>
             </div>
           </div>
-          <Link to="/" className="text-sm opacity-70 hover:opacity-100">
+          <a href="/" className="text-sm opacity-70 hover:opacity-100">
             ← Back to public site
-          </Link>
+          </a>
         </section>
 
         <section className="flex items-center justify-center p-6">
@@ -109,7 +102,7 @@ export function LoginForm({
               {!configured && (
                 <div className="mb-4 rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm">
                   Supabase is not configured. Add <code>VITE_SUPABASE_URL</code> and{" "}
-                  <code>VITE_SUPABASE_ANON_KEY</code>.
+                  <code>VITE_SUPABASE_ANON_KEY</code> in Cloudflare environment variables.
                 </div>
               )}
 
@@ -141,11 +134,10 @@ export function LoginForm({
               </form>
 
               <p className="mt-6 text-center text-sm text-muted-foreground">
-                Need an account? Contact the registrar — they register staff and students after
-                employment or admission.{" "}
-                <Link to="/login" className="text-primary hover:underline">
+                Need an account? Contact the registrar.{" "}
+                <a href="/login" className="text-primary hover:underline">
                   Other portals
-                </Link>
+                </a>
               </p>
             </div>
           </div>

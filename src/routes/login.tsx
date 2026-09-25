@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { GraduationCap, Heart, School, Shield, Users } from "lucide-react";
 
 export const Route = createFileRoute("/login")({ component: LoginHub });
@@ -15,15 +15,15 @@ function LoginHub() {
           <p className="mt-1 text-sm text-muted-foreground">Sign in with your school credentials</p>
         </div>
         <div className="grid gap-3">
-          <HubLink to="/login/student" icon={GraduationCap} title="Student" hint="Admission number" />
-          <HubLink to="/login/staff" icon={Users} title="Staff / Teacher" hint="10-digit staff number" />
-          <HubLink to="/login/parent" icon={Heart} title="Parent / Guardian" hint="Phone or email" />
-          <HubLink to="/login/admin" icon={Shield} title="Admin / Registrar" hint="Email" />
+          <HubLink href="/login/student" icon={GraduationCap} title="Student" hint="Admission number" />
+          <HubLink href="/login/staff" icon={Users} title="Staff / Teacher" hint="10-digit staff number" />
+          <HubLink href="/login/parent" icon={Heart} title="Parent / Guardian" hint="Phone or email" />
+          <HubLink href="/login/admin" icon={Shield} title="Admin / Registrar" hint="Email" />
         </div>
         <p className="mt-6 text-center text-sm">
-          <Link to="/" className="text-primary hover:underline">
+          <a href="/" className="text-primary hover:underline">
             ← Back to home
-          </Link>
+          </a>
         </p>
       </div>
     </main>
@@ -31,26 +31,26 @@ function LoginHub() {
 }
 
 function HubLink({
-  to,
+  href,
   icon: Icon,
   title,
   hint,
 }: {
-  to: string;
+  href: string;
   icon: typeof GraduationCap;
   title: string;
   hint: string;
 }) {
   return (
     <a
-      href={to}
-      className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 transition hover:bg-muted"
+      href={href}
+      className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 no-underline transition hover:bg-muted"
     >
       <span className="grid size-10 place-items-center rounded-lg bg-primary-soft text-primary">
         <Icon className="size-5" />
       </span>
       <span>
-        <span className="block font-medium">{title}</span>
+        <span className="block font-medium text-foreground">{title}</span>
         <span className="block text-xs text-muted-foreground">{hint}</span>
       </span>
       <span className="ml-auto text-muted-foreground">→</span>

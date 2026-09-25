@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import {
   BookOpen,
   GraduationCap,
@@ -22,7 +22,7 @@ function LandingPage() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
-          <Link to="/" className="flex items-center gap-2.5">
+          <a href="/" className="flex items-center gap-2.5">
             <span className="grid size-10 place-items-center rounded-xl gradient-hero text-primary-foreground">
               <School className="size-5" />
             </span>
@@ -32,7 +32,7 @@ function LandingPage() {
                 {s.motto}
               </span>
             </span>
-          </Link>
+          </a>
           <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
             <a href="#about" className="text-muted-foreground hover:text-foreground">
               About
@@ -48,12 +48,12 @@ function LandingPage() {
             </a>
           </nav>
           <div className="flex items-center gap-2">
-            <Link
-              to="/login"
+            <a
+              href="/login"
               className="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-card px-3 text-sm font-medium transition-colors hover:bg-muted"
             >
               Sign in
-            </Link>
+            </a>
           </div>
         </div>
       </header>
@@ -163,25 +163,25 @@ function LandingPage() {
         </p>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <PortalCard
-            to="/login/student"
+            href="/login/student"
             icon={GraduationCap}
             title="Student portal"
             description="Grades, attendance, fee statements, and notices."
           />
           <PortalCard
-            to="/login/staff"
+            href="/login/staff"
             icon={Users}
             title="Staff / Teacher"
             description="Enter marks, attendance, classes, and leave."
           />
           <PortalCard
-            to="/login/parent"
+            href="/login/parent"
             icon={Heart}
             title="Parent portal"
             description="Children's performance, fees, arrears, and reports."
           />
           <PortalCard
-            to="/login/admin"
+            href="/login/admin"
             icon={Shield}
             title="Admin / Registrar"
             description="Registration, fees, staff, payroll, and settings."
@@ -221,27 +221,27 @@ function LandingPage() {
 }
 
 function PortalCard({
-  to,
+  href,
   icon: Icon,
   title,
   description,
 }: {
-  to: "/login/student" | "/login/staff" | "/login/parent" | "/login/admin";
+  href: string;
   icon: typeof GraduationCap;
   title: string;
   description: string;
 }) {
   return (
-    <Link
-      to={to}
-      className="surface-card block cursor-pointer p-6 transition hover:shadow-pop focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+    <a
+      href={href}
+      className="surface-card block cursor-pointer p-6 no-underline transition hover:shadow-pop"
     >
       <div className="grid size-11 place-items-center rounded-xl bg-primary-soft text-primary">
         <Icon className="size-5" />
       </div>
-      <h3 className="mt-4 font-display text-lg font-bold">{title}</h3>
+      <h3 className="mt-4 font-display text-lg font-bold text-foreground">{title}</h3>
       <p className="mt-2 text-sm text-muted-foreground">{description}</p>
       <span className="mt-4 inline-block text-sm font-semibold text-primary">Sign in →</span>
-    </Link>
+    </a>
   );
 }
