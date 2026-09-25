@@ -20,7 +20,13 @@ function LoginHub() {
           <HubLink href="/login/parent" icon={Heart} title="Parent / Guardian" hint="Phone or email" />
           <HubLink href="/login/admin" icon={Shield} title="Admin / Registrar" hint="Email" />
         </div>
-        <p className="mt-6 text-center text-sm">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          No account yet?{" "}
+          <a href="/signup" className="font-medium text-primary hover:underline">
+            Create one
+          </a>
+        </p>
+        <p className="mt-3 text-center text-sm">
           <a href="/" className="text-primary hover:underline">
             ← Back to home
           </a>

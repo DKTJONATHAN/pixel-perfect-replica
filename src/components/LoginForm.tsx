@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, LockKeyhole, School } from "lucide-react";
 import { useAuth } from "@/context/AuthProvider";
 import type { Role } from "@/lib/types";
@@ -20,7 +19,6 @@ export function LoginForm({
   title: string;
 }) {
   const { ready, user, configured, signIn, portalPath } = useAuth();
-  const nav = useNavigate();
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -42,9 +40,7 @@ export function LoginForm({
         setError(`This account is registered as ${user.role}, not for this portal.`);
         return;
       }
-      const path = portalPath(user.role);
-      // Full page navigation so it works even if the SPA router is stuck
-      window.location.assign(path);
+      window.location.assign(portalPath(user.role));
     }
   }, [ready, user, role, portalPath]);
 
@@ -78,8 +74,8 @@ export function LoginForm({
               <p className="text-sm font-semibold uppercase tracking-widest text-accent">{title}</p>
               <h1 className="mt-4 font-display text-4xl font-bold">Sign in with your school ID.</h1>
               <p className="mt-5 text-sidebar-foreground/65">
-                Staff and teachers use their 10-digit staff number. Students use their admission
-                number. Accounts are created by the registrar after employment or admission.
+                Staff use their 10-digit staff number. Students use admission number. Parents use phone
+                or email. Admins use email.
               </p>
             </div>
           </div>
@@ -96,13 +92,12 @@ export function LoginForm({
                   <LockKeyhole />
                 </div>
                 <h2 className="font-display text-2xl font-bold">{title}</h2>
-                <p className="text-sm text-muted-foreground">Use the credentials issued by the school.</p>
+                <p className="text-sm text-muted-foreground">Use the credentials for this portal.</p>
               </div>
 
               {!configured && (
                 <div className="mb-4 rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm">
-                  Supabase is not configured. Add <code>VITE_SUPABASE_URL</code> and{" "}
-                  <code>VITE_SUPABASE_ANON_KEY</code> in Cloudflare environment variables.
+                  Supabase is not configured.
                 </div>
               )}
 
@@ -134,7 +129,11 @@ export function LoginForm({
               </form>
 
               <p className="mt-6 text-center text-sm text-muted-foreground">
-                Need an account? Contact the registrar.{" "}
+                No account?{" "}
+                <a href="/signup" className="text-primary hover:underline">
+                  Sign up
+                </a>
+                {" · "}
                 <a href="/login" className="text-primary hover:underline">
                   Other portals
                 </a>
