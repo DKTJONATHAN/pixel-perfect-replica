@@ -1,5 +1,5 @@
-// Cloudflare Pages deployment for the TanStack Start application.
-// Nitro emits the Pages Function as dist/_worker.js and static assets under dist/.
+// Cloudflare Workers deployment for the TanStack Start application.
+// Nitro emits a Worker + static assets that `wrangler deploy` understands.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
@@ -7,9 +7,9 @@ export default defineConfig({
     // Keep the existing SSR error wrapper as the application entry point.
     server: { entry: "server" },
   },
-  // Cloudflare Pages is the deployment target. Nitro generates the Pages
-  // worker, _routes.json and redirects/headers metadata automatically.
+  // Cloudflare Workers is the deployment target. Matches the CI deploy
+  // command (`npx wrangler deploy`) used by this project's Cloudflare build.
   nitro: {
-    preset: "cloudflare-pages",
+    preset: "cloudflare_module",
   },
 });
