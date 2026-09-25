@@ -250,7 +250,7 @@ begin
     new.id,
     new.email,
     coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
-    coalesce((new.raw_user_meta_data->>'role')::public.app_role, 'student')
+    'student'
   )
   on conflict (id) do nothing;
   return new;
@@ -339,11 +339,11 @@ create policy "Admin update school settings" on public.school_settings
 -- Classes: authenticated read, staff write
 drop policy if exists "Auth read classes" on public.classes;
 create policy "Auth read classes" on public.classes
-  for select using (auth.role() = 'authenticated');
+  for select using ((select auth.uid()) is not null);
 
 drop policy if exists "Staff write classes" on public.classes;
 create policy "Staff write classes" on public.classes
-  for all using (public.is_staff());
+  for all using (public.is_staff()) with check (public.is_staff());
 
 -- Staff table
 drop policy if exists "Auth read staff" on public.staff;
@@ -352,7 +352,7 @@ create policy "Auth read staff" on public.staff
 
 drop policy if exists "Admin write staff" on public.staff;
 create policy "Admin write staff" on public.staff
-  for all using (public.is_admin());
+  for all using (public.is_admin()) with check (public.is_admin());
 
 -- Students
 drop policy if exists "Students read self or staff" on public.students;
@@ -438,3 +438,10 @@ create policy "Staff read activity" on public.activity_log
 drop policy if exists "Staff write activity" on public.activity_log;
 create policy "Staff write activity" on public.activity_log
   for insert with check (public.is_staff());
+
+
+-- Never expose role-management helpers to client roles.
+revoke execute on function public.current_role() from public, anon, authenticated;
+revoke execute on function public.is_admin() from public, anon, authenticated;
+revoke execute on function public.is_staff() from public, anon, authenticated;
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
