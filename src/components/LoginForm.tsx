@@ -59,9 +59,12 @@ export function LoginForm({
     e.preventDefault();
     setError("");
     setLoading(true);
-    const result = await signIn(loginId, password);
-    setLoading(false);
-    if (!result.ok) setError(result.error ?? "Sign in failed");
+    try {
+      const result = await signIn(loginId, password, role);
+      if (!result.ok) setError(result.error ?? "Sign in failed");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
