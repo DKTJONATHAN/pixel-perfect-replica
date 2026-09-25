@@ -1,14 +1,21 @@
-// Cloudflare Workers deployment for the TanStack Start application.
-// Nitro emits a Worker + static assets that `wrangler deploy` understands.
-import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { defineConfig } from "vite";
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import viteReact from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
-  tanstackStart: {
-    // Keep the existing SSR error wrapper as the application entry point.
-    server: { entry: "server" },
-  },
-  // Cloudflare Workers is the deployment target. Matches the CI deploy
-  // command (`npx wrangler deploy`) used by this project's Cloudflare build.
+  server: { port: 3000 },
+  plugins: [
+    tsconfigPaths({ projects: ["./tsconfig.json"] }),
+    tailwindcss(),
+    tanstackStart({
+      server: { entry: "server" },
+    }),
+    viteReact(),
+  ],
+  // Cloudflare Workers via Nitro (cloudflare_module matches `wrangler deploy`)
+  // @ts-expect-error nitro is provided by TanStack Start / Nitro integration
   nitro: {
     preset: "cloudflare_module",
   },
