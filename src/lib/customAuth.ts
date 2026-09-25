@@ -111,8 +111,45 @@ export async function registerAccount(input: {
 
 export async function loginAccount(loginId: string, secret: string) {
   const sb = getSupabase();
+  const identifier = loginId.trim();
+
+  // Parents/admins may sign in with the real email address.
+  // Staff/students/parents using their school ID continue through the
+  // existing login_id RPC.
+  if (identifier.includes("@")) {
+    const { data, error } = await sb.auth.signInWithPassword({
+      email: identifier.toLowerCase(),
+      password: secret,
+    });
+
+    if (error || !data.user) {
+      return {
+        ok: false as const,
+        error: error?.message ?? "Invalid login credentials",
+      };
+    }
+
+    const { data: profile, error: profileError } = await sb
+      .from("profiles")
+      .select("*")
+      .eq("auth_user_id", data.user.id)
+      .maybeSingle();
+
+    if (profileError) {
+      await sb.auth.signOut();
+      return { ok: false as const, error: profileError.message };
+    }
+
+    if (!profile) {
+      await sb.auth.signOut();
+      return { ok: false as const, error: "Authentication succeeded, but the school profile is not linked to this account." };
+    }
+
+    return { ok: true as const, profile: profile as SessionProfile };
+  }
+
   const { data, error } = await sb.rpc("login_account", {
-    p_login_id: loginId.trim(),
+    p_login_id: identifier,
     p_password: secret,
   });
 
