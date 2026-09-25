@@ -61,7 +61,7 @@ export interface Database {
       };
       parent_students: {
         Row: { id: string; parent_profile_id: string; student_id: string; relationship: string; };
-        Insert: { id?: string; parent_profile_id: string; student_id: string; relationship?: string };
+        Insert: { id?: string; parent_profile_id: string; student_id: string; relationship?: string; is_primary?: boolean };
         Update: Partial<Database["public"]["Tables"]["parent_students"]["Insert"]>;
       };
     };
