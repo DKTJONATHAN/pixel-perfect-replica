@@ -1,16 +1,17 @@
 # KidRight Academy — Supabase SQL Reference
 
-This file is a consolidated, human-readable copy of the Supabase SQL currently tracked in the repository.
+This file is a consolidated copy of the Supabase SQL currently tracked in the repository.
 
-> **Important:** This is a reference/archive document. The executable source of truth remains the individual SQL files under `supabase/schema.sql`, `supabase/migrations/`, and `supabase/sql/`.
+> The executable source of truth remains the individual files under `supabase/schema.sql`, `supabase/migrations/`, and `supabase/sql/`.
 
 ## Current database notes
 
-- Login credentials use the `public.credentials` table with passwords stored as bcrypt hashes through `extensions.crypt()`.
+- Login credentials use `public.credentials` with bcrypt hashes generated through `extensions.crypt()`.
 - `pgcrypto` is installed in the `extensions` schema.
-- `staff.employment_type` uses the `public.employment_type` enum. `staff.teacher_employment` is a text field.
-- Fee payments are treated as one annual ledger: payments entered under any term contribute to annual paid total; excess carries Term 1 → Term 2 → Term 3 → annual credit.
-- Marks and payment changes are enabled for Supabase Realtime so student and parent portals can update without a manual refresh.
+- `staff.employment_type` uses the `public.employment_type` enum; `staff.teacher_employment` is a text field.
+- Fees are one annual ledger. All payments count toward the learner's annual paid total regardless of the receipt's entered term. Excess is carried Term 1 → Term 2 → Term 3 → annual credit.
+- Marks and payments are enabled for Supabase Realtime so student and parent portals can update when records change.
+- Registration no longer signs the administrator into the newly-created account; the new account establishes/links its authentication session on its first login.
 
 ---
 
@@ -1384,3 +1385,4 @@ create policy "Admin manage assignments" on public.teaching_assignments
   for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
 ```
+
