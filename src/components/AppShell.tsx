@@ -69,6 +69,7 @@ const NAV_BY_PORTAL: Record<string, { group: string; items: NavItem[] }[]> = {
         },
         { to: "/staff/marks", label: "Enter marks", icon: PenLine, permission: "grades.edit" },
         { to: "/staff/grades", label: "Grades list", icon: ClipboardList, permission: "grades.edit" },
+        { to: "/staff/leave", label: "Leave", icon: Plane },
       ],
     },
   ],
@@ -100,6 +101,7 @@ const NAV_BY_PORTAL: Record<string, { group: string; items: NavItem[] }[]> = {
       items: [
         { to: "/admin/staff", label: "Staff", icon: Users, permission: "staff.view" },
         { to: "/admin/leave", label: "Leave", icon: Plane, permission: "staff.view" },
+        { to: "/admin/duties", label: "Duties & teaching", icon: ClipboardList, permission: "classes.manage" },
         { to: "/admin/payroll", label: "Payroll", icon: Wallet, permission: "payroll.view" },
       ],
     },
