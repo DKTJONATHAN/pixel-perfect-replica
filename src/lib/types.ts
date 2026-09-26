@@ -2,13 +2,13 @@
 
 export type Role = "admin" | "registrar" | "teacher" | "staff" | "student" | "parent";
 
-export type StudentStatus = "Active" | "Transferred" | "Graduated" | "Suspended";
+export type StudentStatus = "Active" | "Transferred" | "Graduated" | "Suspended" | "Expelled";
 export type StaffStatus = "Active" | "On Leave" | "Terminated";
 export type Gender = "Male" | "Female";
 export type AttendanceStatus = "Present" | "Absent" | "Late";
 export type EmploymentType = "Full-time" | "Part-time" | "Contract";
 export type StaffCategory = "Teacher" | "Support";
-export type TeacherEmployment = "TSC" | "BOM" | "PTA";
+export type TeacherEmployment = "TSC" | "BOM" | "PTA" | "Casual";
 export type SupportDepartment =
   | "Administration"
   | "Accounts"
@@ -169,6 +169,21 @@ export interface Settings {
   mission: string;
 }
 
+export interface DutyAssignment {
+  id: string;
+  weekStart: string;
+  staffId: string;
+  duty: string;
+  notes: string;
+}
+
+export interface TeachingAssignment {
+  id: string;
+  staffId: string;
+  classId: string;
+  subject: string;
+}
+
 export interface SchoolData {
   classes: SchoolClass[];
   students: Student[];
@@ -179,8 +194,21 @@ export interface SchoolData {
   payments: Payment[];
   leave: LeaveRequest[];
   activity: Activity[];
+  duty: DutyAssignment[];
+  assignments: TeachingAssignment[];
   settings: Settings;
 }
+
+export const DUTY_TYPES = [
+  "Teacher on duty",
+  "Deputy on duty",
+  "Games master",
+  "Dining hall",
+  "Assembly",
+  "Clubs & societies",
+];
+
+export const EMPLOYMENT_TERMS: TeacherEmployment[] = ["TSC", "BOM", "PTA", "Casual"];
 
 /** Computed term result for one student. */
 export interface StudentTermResult {
