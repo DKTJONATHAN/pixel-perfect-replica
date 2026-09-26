@@ -6,7 +6,7 @@ do $$ begin
 exception when duplicate_object then null; end $$;
 
 do $$ begin
-  alter type public.teacher_employment add value if not exists 'Casual';
+  alter type public.employment_type add value if not exists 'Casual';
 exception when duplicate_object then null; end $$;
 
 -- Only an administrator may change a learner's status.
