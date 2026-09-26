@@ -8,6 +8,7 @@ import {
   CalendarCheck,
   ClipboardList,
   GraduationCap,
+  KeyRound,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -28,6 +29,7 @@ import { useAuth } from "@/context/AuthProvider";
 import { useSchool, type Permission } from "@/context/SchoolProvider";
 import type { Role } from "@/lib/types";
 import { Avatar, Button, Spinner } from "@/components/UI";
+import { ChangePasswordModal } from "@/components/ChangePasswordModal";
 
 type NavItem = {
   to: string;
@@ -164,6 +166,7 @@ export function AppShell({
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
 
   const shellKey = portal === "parent" ? "parent" : portal === "student" ? "student" : portal === "admin" ? "admin" : "staff";
 
@@ -327,6 +330,14 @@ export function AppShell({
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label="Change password"
+                onClick={() => setChangePasswordOpen(true)}
+              >
+                <KeyRound className="size-4.5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
                 aria-label="Sign out"
                 onClick={() => void signOut().then(() => navigate({ to: "/" }))}
               >
@@ -335,6 +346,8 @@ export function AppShell({
             </div>
           </div>
         </header>
+
+        <ChangePasswordModal open={changePasswordOpen} onClose={() => setChangePasswordOpen(false)} />
 
         <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
           <div className="mx-auto max-w-7xl">
