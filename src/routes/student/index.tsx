@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CalendarCheck, ClipboardList, Wallet } from "lucide-react";
+import { CalendarCheck, ClipboardList, Download, Wallet } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { Badge, Card } from "@/components/UI";
+import { Badge, Button, Card } from "@/components/UI";
 import { useAuth } from "@/context/AuthProvider";
 import { useSchool } from "@/context/SchoolProvider";
-import { className, fullName, money, prettyDate } from "@/lib/format";
+import { className, exportStudentRecord, fullName, money, prettyDate } from "@/lib/format";
 
 export const Route = createFileRoute("/student/")({ component: StudentPortal });
 
@@ -49,6 +49,14 @@ function StudentPortal() {
           value={money(Math.max(0, balance), db.settings.currency)}
         />
       </div>
+
+      {me && (
+        <div className="mt-4 flex justify-end">
+          <Button variant="outline" size="sm" onClick={() => exportStudentRecord(db, me)}>
+            <Download className="size-4" /> Export my record
+          </Button>
+        </div>
+      )}
 
       {me && (
         <div className="mt-6 grid gap-6 lg:grid-cols-2">

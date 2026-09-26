@@ -78,19 +78,102 @@ export function attendanceRate(present: number, total: number) {
   return Math.round((present / total) * 1000) / 10;
 }
 
-export function downloadCsv(filename: string, headers: string[], rows: (string | number)[][]) {
-  const escape = (v: string | number) => {
-    const s = String(v ?? "");
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  const csv = [headers.map(escape).join(","), ...rows.map((r) => r.map(escape).join(","))].join(
-    "\n",
-  );
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+function triggerDownload(filename: string, content: string, mime: string) {
+  const blob = new Blob([content], { type: mime });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function csvEscape(v: string | number) {
+  const s = String(v ?? "");
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+export function downloadCsv(filename: string, headers: string[], rows: (string | number)[][]) {
+  const csv = [
+    headers.map(csvEscape).join(","),
+    ...rows.map((r) => r.map(csvEscape).join(",")),
+  ].join("\n");
+  triggerDownload(filename, csv, "text/csv;charset=utf-8");
+}
+
+/**
+ * A single, complete CSV for one student — profile, fee payments, exam
+ * results, and attendance — so a teacher, the registrar, or the student
+ * themselves can pull the whole record in one click instead of hunting
+ * across separate screens. Sections are separated by a blank line and a
+ * "== NAME ==" marker row, which spreadsheet apps read fine as plain rows.
+ */
+export function exportStudentRecord(
+  db: {
+    classes: { id: string; name: string; stream: string; feePerTerm: number }[];
+    grades: { studentId: string; term: string; subject: string; score: number }[];
+    payments: {
+      studentId: string;
+      receiptNo: string;
+      term: string;
+      amount: number;
+      date: string;
+      method: string;
+    }[];
+    attendance: { studentId: string; date: string; status: string }[];
+    settings: { currency: string };
+  },
+  student: {
+    id: string;
+    admissionNo: string;
+    firstName: string;
+    lastName: string;
+    classId: string;
+    status: string;
+    guardianName: string;
+    guardianPhone: string;
+  },
+) {
+  const cls = db.classes.find((c) => c.id === student.classId);
+  const grades = db.grades.filter((g) => g.studentId === student.id);
+  const payments = db.payments.filter((p) => p.studentId === student.id);
+  const attendance = db.attendance.filter((a) => a.studentId === student.id);
+  const paid = payments.reduce((a, p) => a + p.amount, 0);
+  const present = attendance.filter((a) => a.status === "Present").length;
+
+  const lines: string[] = [];
+  const section = (title: string) => {
+    if (lines.length) lines.push("");
+    lines.push(`== ${title} ==`);
+  };
+  const row = (cells: (string | number)[]) => lines.push(cells.map(csvEscape).join(","));
+
+  section("PROFILE");
+  row(["Name", `${student.firstName} ${student.lastName}`]);
+  row(["Admission No", student.admissionNo]);
+  row(["Class", cls ? `${cls.name} ${cls.stream}` : "Unassigned"]);
+  row(["Status", student.status]);
+  row(["Guardian", student.guardianName]);
+  row(["Guardian phone", student.guardianPhone]);
+
+  section("FEES");
+  row(["Term fee", cls?.feePerTerm ?? 0]);
+  row(["Total paid", paid]);
+  row(["Balance", Math.max(0, (cls?.feePerTerm ?? 0) - paid)]);
+  row([]);
+  row(["Receipt", "Term", "Amount", "Method", "Date"]);
+  payments.forEach((p) => row([p.receiptNo, p.term, p.amount, p.method, p.date]));
+
+  section("RESULTS");
+  row(["Term", "Subject", "Score"]);
+  grades.forEach((g) => row([g.term, g.subject, g.score]));
+
+  section("ATTENDANCE");
+  row(["Present", present]);
+  row(["Total recorded", attendance.length]);
+  row([]);
+  row(["Date", "Status"]);
+  attendance.forEach((a) => row([a.date, a.status]));
+
+  triggerDownload(`${student.admissionNo}-record.csv`, lines.join("\n"), "text/csv;charset=utf-8");
 }

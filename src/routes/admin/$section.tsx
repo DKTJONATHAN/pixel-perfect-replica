@@ -4,7 +4,7 @@ import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Badge, Button, Card, Input } from "@/components/UI";
 import { useSchool } from "@/context/SchoolProvider";
-import { className, downloadCsv, fullName, money, prettyDate } from "@/lib/format";
+import { className, downloadCsv, exportStudentRecord, fullName, money, prettyDate } from "@/lib/format";
 import type { SchoolData } from "@/lib/types";
 
 export const Route = createFileRoute("/admin/$section")({ component: AdminSection });
@@ -73,7 +73,7 @@ function Table({ section, db, q }: { section: string; db: SchoolData; q: string 
   let rows: (string | number | React.ReactNode)[][] = [];
 
   if (section === "students") {
-    headers = ["Student", "Admission", "Class", "Guardian", "Status"];
+    headers = ["Student", "Admission", "Class", "Guardian", "Status", ""];
     rows = db.students
       .filter(
         (x) =>
@@ -89,6 +89,14 @@ function Table({ section, db, q }: { section: string; db: SchoolData; q: string 
         <Badge key={x.id} tone={x.status === "Active" ? "success" : "neutral"}>
           {x.status}
         </Badge>,
+        <Button
+          key={`export-${x.id}`}
+          variant="ghost"
+          size="sm"
+          onClick={() => exportStudentRecord(db, x)}
+        >
+          <Download className="size-4" /> Record
+        </Button>,
       ]);
   } else if (section === "classes") {
     headers = ["Class", "Teacher", "Students", "Term fee"];
