@@ -211,6 +211,15 @@ export const DUTY_TYPES = [
 export const EMPLOYMENT_TERMS: TeacherEmployment[] = ["TSC", "BOM", "PTA", "Casual"];
 
 /** Computed term result for one student. */
+export interface StudentFeeTerm {
+  term: string;
+  billed: number;
+  paidAcrossAllTerms: number;
+  allocatedPaid: number;
+  balance: number;
+  creditAfterTerm: number;
+}
+
 export interface StudentTermResult {
   studentId: string;
   term: string;
