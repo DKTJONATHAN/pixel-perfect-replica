@@ -100,7 +100,7 @@ export async function registerAccount(input: {
 
   if (error) return { ok: false as const, error: error.message };
 
-  return establish(data as SessionProfile, input.password);
+  // Registration must never sign the administrator into the newly-created account.\n  // The new user will establish/link their Supabase Auth session on their first login.\n  return { ok: true as const, profile: data as SessionProfile };
 }
 
 export async function loginAccount(loginId: string, secret: string) {
