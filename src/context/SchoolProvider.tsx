@@ -76,6 +76,8 @@ const EMPTY: SchoolData = {
   payments: [],
   leave: [],
   activity: [],
+  duty: [],
+  assignments: [],
   settings: {
     schoolName: "KidRight Academy",
     motto: "Learn. Grow. Shine.",

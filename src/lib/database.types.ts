@@ -64,6 +64,16 @@ export interface Database {
         Insert: { id?: string; parent_profile_id: string; student_id: string; relationship?: string; is_primary?: boolean };
         Update: Partial<Database["public"]["Tables"]["parent_students"]["Insert"]>;
       };
+      duty_roster: {
+        Row: { id: string; week_start: string; staff_id: string; duty: string; notes: string | null; created_at: string; };
+        Insert: { id?: string; week_start: string; staff_id: string; duty?: string; notes?: string | null };
+        Update: Partial<Database["public"]["Tables"]["duty_roster"]["Insert"]>;
+      };
+      teaching_assignments: {
+        Row: { id: string; staff_id: string; class_id: string; subject: string; created_at: string; };
+        Insert: { id?: string; staff_id: string; class_id: string; subject: string };
+        Update: Partial<Database["public"]["Tables"]["teaching_assignments"]["Insert"]>;
+      };
     };
     Views: Record<string, never>;
     Functions: {

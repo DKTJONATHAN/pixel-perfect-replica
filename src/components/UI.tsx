@@ -138,6 +138,7 @@ export function statusTone(status: string): Tone {
     case "Partial":
       return "warning";
     case "Suspended":
+    case "Expelled":
     case "Terminated":
     case "Absent":
     case "Rejected":
