@@ -1,5 +1,5 @@
 // Shared formatting, grading and CSV helpers.
-import type { GradeRecord, SchoolClass, SchoolData, Student } from "@/lib/types";
+import { TERMS, type GradeRecord, type SchoolClass, type SchoolData, type Student } from "@/lib/types";
 
 export function money(amount: number, currency = "KES") {
   return `${currency} ${amount.toLocaleString("en-KE", { maximumFractionDigits: 0 })}`;
@@ -139,6 +139,9 @@ export function exportStudentRecord(
   const payments = db.payments.filter((p) => p.studentId === student.id);
   const attendance = db.attendance.filter((a) => a.studentId === student.id);
   const paid = payments.reduce((a, p) => a + p.amount, 0);
+  const annualBilled = (cls?.feePerTerm ?? 0) * TERMS.length;
+  const annualArrears = Math.max(annualBilled - paid, 0);
+  const annualCredit = Math.max(paid - annualBilled, 0);
   const present = attendance.filter((a) => a.status === "Present").length;
 
   const lines: string[] = [];
@@ -157,9 +160,10 @@ export function exportStudentRecord(
   row(["Guardian phone", student.guardianPhone]);
 
   section("FEES");
-  row(["Term fee", cls?.feePerTerm ?? 0]);
+  row(["Annual fee", annualBilled]);
   row(["Total paid", paid]);
-  row(["Balance", Math.max(0, (cls?.feePerTerm ?? 0) - paid)]);
+  row(["Arrears", annualArrears]);
+  row(["Credit", annualCredit]);
   row([]);
   row(["Receipt", "Term", "Amount", "Method", "Date"]);
   payments.forEach((p) => row([p.receiptNo, p.term, p.amount, p.method, p.date]));
