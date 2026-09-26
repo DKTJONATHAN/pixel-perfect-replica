@@ -125,7 +125,7 @@ function ParentPortal() {
               <Card>
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h2 className="font-display text-lg font-bold">Performance · {term}</h2>
+                    <h2 className="font-display text-lg font-medium">Performance · {term}</h2>
                     <p className="text-sm text-muted-foreground">
                       {fullName(student)} · {className(db, student.classId)}
                     </p>
@@ -137,15 +137,15 @@ function ParentPortal() {
                 <div className="mt-4 grid grid-cols-3 gap-3 text-center">
                   <div className="rounded-lg bg-muted p-3">
                     <p className="text-xs text-muted-foreground">Total</p>
-                    <p className="font-display text-xl font-bold">{result.total}</p>
+                    <p className="font-display text-xl font-medium">{result.total}</p>
                   </div>
                   <div className="rounded-lg bg-muted p-3">
                     <p className="text-xs text-muted-foreground">Average</p>
-                    <p className="font-display text-xl font-bold">{result.average}</p>
+                    <p className="font-display text-xl font-medium">{result.average}</p>
                   </div>
                   <div className="rounded-lg bg-muted p-3">
                     <p className="text-xs text-muted-foreground">Position</p>
-                    <p className="font-display text-xl font-bold">
+                    <p className="font-display text-xl font-medium">
                       {myRank || "—"}
                       <span className="text-sm font-normal text-muted-foreground">
                         /{classPeers.length}
@@ -190,7 +190,7 @@ function ParentPortal() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <Wallet className="size-5 text-primary" />
-                    <h2 className="font-display text-lg font-bold">Fees & arrears</h2>
+                    <h2 className="font-display text-lg font-medium">Fees & arrears</h2>
                   </div>
                   <Button variant="outline" size="sm" onClick={exportFees}>
                     <Download className="size-4" /> Excel

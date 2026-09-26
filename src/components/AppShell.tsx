@@ -133,7 +133,7 @@ export function Logo({ compact = false }: { compact?: boolean }) {
       </span>
       {!compact && (
         <span className="min-w-0">
-          <span className="block truncate font-display text-base leading-tight font-bold">KidRight</span>
+          <span className="block truncate font-display text-base leading-tight font-medium">KidRight</span>
           <span className="block truncate text-[11px] tracking-wide text-muted-foreground uppercase">
             Academy
           </span>
@@ -197,7 +197,7 @@ export function AppShell({
     return (
       <div className="flex min-h-screen items-center justify-center p-6">
         <div className="surface-card max-w-md p-8 text-center">
-          <h1 className="font-display text-xl font-bold">You don't have access to this page</h1>
+          <h1 className="font-display text-xl font-medium">You don't have access to this page</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Your account is signed in as {roleLabel(user.role)}.
           </p>
@@ -340,7 +340,7 @@ export function AppShell({
           <div className="mx-auto max-w-7xl">
             <div className="no-print mb-6 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:flex sm:items-center sm:justify-between">
               <div className="min-w-0">
-                <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
+                <h1 className="font-display text-2xl font-medium tracking-tight sm:text-3xl">{title}</h1>
                 {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
               </div>
               {actions && <div className="flex flex-wrap gap-2">{actions}</div>}

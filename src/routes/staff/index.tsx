@@ -30,7 +30,7 @@ function StaffPortal() {
       </div>
 
       <Card className="mt-6">
-        <h2 className="font-display text-lg font-bold">My classes</h2>
+        <h2 className="font-display text-lg font-medium">My classes</h2>
         <ul className="mt-4 divide-y divide-border">
           {myClasses.map((c) => (
             <li key={c.id} className="flex justify-between py-3 text-sm">
@@ -66,7 +66,7 @@ function Metric({
         <Icon className="size-5" />
       </div>
       <p className="mt-4 text-sm text-muted-foreground">{label}</p>
-      <p className="font-display text-2xl font-bold">{value}</p>
+      <p className="font-display text-2xl font-medium">{value}</p>
     </Card>
   );
 }

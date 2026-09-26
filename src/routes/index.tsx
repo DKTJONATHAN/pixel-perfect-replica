@@ -27,7 +27,7 @@ function LandingPage() {
               <School className="size-5" />
             </span>
             <span>
-              <span className="block font-display text-base font-bold leading-tight">{s.schoolName}</span>
+              <span className="block font-display text-base font-medium leading-tight">{s.schoolName}</span>
               <span className="block text-[11px] uppercase tracking-wide text-muted-foreground">
                 {s.motto}
               </span>
@@ -62,10 +62,10 @@ function LandingPage() {
         <div className="absolute inset-0 gradient-hero opacity-95" />
         <div className="relative mx-auto grid max-w-6xl gap-10 px-4 py-20 text-primary-foreground lg:grid-cols-2 lg:py-28">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-widest text-primary-foreground/80">
-              Nairobi · Academic year {s.academicYear}
+            <p className="text-sm font-medium text-primary-foreground/70">
+              Nairobi, Kenya — Academic year {s.academicYear}
             </p>
-            <h1 className="mt-4 font-display text-4xl font-bold leading-tight sm:text-5xl">
+            <h1 className="mt-4 font-display text-4xl font-medium leading-tight sm:text-5xl">
               A place where every child learns, grows, and shines.
             </h1>
             <p className="mt-5 max-w-xl text-base text-primary-foreground/85">
@@ -96,7 +96,7 @@ function LandingPage() {
             ].map((item) => (
               <div
                 key={item.label}
-                className="rounded-2xl border border-primary-foreground/20 bg-primary-foreground/10 p-5 backdrop-blur"
+                className="rounded-lg border border-primary-foreground/20 bg-primary-foreground/5 p-5"
               >
                 <item.icon className="size-6" />
                 <p className="mt-3 font-medium">{item.label}</p>
@@ -109,17 +109,17 @@ function LandingPage() {
       <section id="about" className="mx-auto max-w-6xl px-4 py-16">
         <div className="grid gap-10 lg:grid-cols-2">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-widest text-primary">About us</p>
-            <h2 className="mt-2 font-display text-3xl font-bold">{s.schoolName}</h2>
+            <p className="section-kicker text-base">About us</p>
+            <h2 className="mt-2 font-display text-3xl font-medium">{s.schoolName}</h2>
             <p className="mt-4 text-muted-foreground">{s.about}</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="surface-card p-6">
-              <h3 className="font-display text-lg font-bold">Vision</h3>
+              <h3 className="font-display text-lg font-medium">Vision</h3>
               <p className="mt-2 text-sm text-muted-foreground">{s.vision}</p>
             </div>
             <div className="surface-card p-6">
-              <h3 className="font-display text-lg font-bold">Mission</h3>
+              <h3 className="font-display text-lg font-medium">Mission</h3>
               <p className="mt-2 text-sm text-muted-foreground">{s.mission}</p>
             </div>
           </div>
@@ -128,8 +128,8 @@ function LandingPage() {
 
       <section id="programs" className="border-y border-border bg-muted/40 py-16">
         <div className="mx-auto max-w-6xl px-4">
-          <p className="text-sm font-semibold uppercase tracking-widest text-primary">Programs</p>
-          <h2 className="mt-2 font-display text-3xl font-bold">What we offer</h2>
+          <p className="section-kicker text-base">Programs</p>
+          <h2 className="mt-2 font-display text-3xl font-medium">What we offer</h2>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {[
               {
@@ -146,7 +146,7 @@ function LandingPage() {
               },
             ].map((p) => (
               <div key={p.title} className="surface-card p-6">
-                <h3 className="font-display text-lg font-bold">{p.title}</h3>
+                <h3 className="font-display text-lg font-medium">{p.title}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">{p.body}</p>
               </div>
             ))}
@@ -155,8 +155,8 @@ function LandingPage() {
       </section>
 
       <section id="portals" className="mx-auto max-w-6xl px-4 py-16">
-        <p className="text-sm font-semibold uppercase tracking-widest text-primary">Portals</p>
-        <h2 className="mt-2 font-display text-3xl font-bold">Sign in to your workspace</h2>
+        <p className="section-kicker text-base">Portals</p>
+        <h2 className="mt-2 font-display text-3xl font-medium">Sign in to your workspace</h2>
         <p className="mt-2 max-w-2xl text-muted-foreground">
           Accounts are issued by the registrar after admission or employment. Use your staff number,
           admission number, or parent phone to sign in.
@@ -192,7 +192,7 @@ function LandingPage() {
       <section id="contact" className="border-t border-border bg-sidebar py-14 text-sidebar-foreground">
         <div className="mx-auto grid max-w-6xl gap-8 px-4 md:grid-cols-2">
           <div>
-            <h2 className="font-display text-2xl font-bold">Contact</h2>
+            <h2 className="font-display text-2xl font-medium">Contact</h2>
             <ul className="mt-5 space-y-3 text-sm text-sidebar-foreground/80">
               <li className="flex items-start gap-2">
                 <MapPin className="mt-0.5 size-4 shrink-0" /> {s.address}
@@ -234,14 +234,14 @@ function PortalCard({
   return (
     <a
       href={href}
-      className="surface-card block cursor-pointer p-6 no-underline transition hover:shadow-pop"
+      className="surface-card block cursor-pointer p-6 no-underline transition-colors hover:border-primary/40"
     >
-      <div className="grid size-11 place-items-center rounded-xl bg-primary-soft text-primary">
+      <div className="grid size-11 place-items-center rounded-lg bg-primary-soft text-primary">
         <Icon className="size-5" />
       </div>
-      <h3 className="mt-4 font-display text-lg font-bold text-foreground">{title}</h3>
+      <h3 className="mt-4 font-display text-lg font-medium text-foreground">{title}</h3>
       <p className="mt-2 text-sm text-muted-foreground">{description}</p>
-      <span className="mt-4 inline-block text-sm font-semibold text-primary">Sign in →</span>
+      <span className="mt-4 inline-block text-sm font-semibold text-primary">Sign in</span>
     </a>
   );
 }

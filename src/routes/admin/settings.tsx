@@ -84,7 +84,7 @@ function SettingsPage() {
     >
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="p-6">
-          <h2 className="font-display text-lg font-bold">Academic period</h2>
+          <h2 className="font-display text-lg font-medium">Academic period</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <label className="space-y-1 text-sm">
               <span className="font-medium">Academic year</span>
@@ -123,7 +123,7 @@ function SettingsPage() {
         </Card>
 
         <Card className="p-6">
-          <h2 className="font-display text-lg font-bold">Contact details</h2>
+          <h2 className="font-display text-lg font-medium">Contact details</h2>
           <div className="mt-4 space-y-3">
             <label className="block space-y-1 text-sm">
               <span className="font-medium">School name</span>
@@ -155,7 +155,7 @@ function SettingsPage() {
         </Card>
 
         <Card className="p-6 lg:col-span-2">
-          <h2 className="font-display text-lg font-bold">School profile</h2>
+          <h2 className="font-display text-lg font-medium">School profile</h2>
           <div className="mt-4 grid gap-3 lg:grid-cols-3">
             <label className="space-y-1 text-sm">
               <span className="font-medium">About</span>

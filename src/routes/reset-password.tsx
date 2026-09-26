@@ -105,7 +105,7 @@ function ResetPasswordPage() {
           <div className="mx-auto grid size-12 place-items-center rounded-2xl gradient-hero text-primary-foreground">
             <School className="size-6" />
           </div>
-          <h1 className="mt-4 font-display text-2xl font-bold">Choose a new password</h1>
+          <h1 className="mt-4 font-display text-2xl font-medium">Choose a new password</h1>
           <p className="mt-1 text-sm text-muted-foreground">Set a new password for your KidRight account.</p>
         </div>
 

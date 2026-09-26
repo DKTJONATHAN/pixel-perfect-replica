@@ -111,7 +111,7 @@ function TeacherForm() {
 
   return (
     <Card>
-      <h3 className="font-display text-lg font-bold">Register teacher</h3>
+      <h3 className="font-display text-lg font-medium">Register teacher</h3>
       <p className="mt-1 text-sm text-muted-foreground">
         System assigns a unique 10-digit staff number. Teacher signs in with staff number + password.
       </p>
@@ -250,7 +250,7 @@ function SupportForm() {
 
   return (
     <Card>
-      <h3 className="font-display text-lg font-bold">Register support staff</h3>
+      <h3 className="font-display text-lg font-medium">Register support staff</h3>
       <p className="mt-1 text-sm text-muted-foreground">
         Cleaners, cooks, drivers, security and other non-teaching staff. Unique 10-digit staff number
         assigned automatically.
@@ -366,7 +366,7 @@ function StudentForm() {
 
   return (
     <Card>
-      <h3 className="font-display text-lg font-bold">Register student</h3>
+      <h3 className="font-display text-lg font-medium">Register student</h3>
       <p className="mt-1 text-sm text-muted-foreground">
         Registrar assigns admission number and class/stream. Student signs in with admission number +
         password.
@@ -470,7 +470,7 @@ function ParentForm() {
 
   return (
     <Card>
-      <h3 className="font-display text-lg font-bold">Register parent / guardian</h3>
+      <h3 className="font-display text-lg font-medium">Register parent / guardian</h3>
       <p className="mt-1 text-sm text-muted-foreground">
         Parents sign in with phone or email to view linked children&apos;s performance and fees.
       </p>

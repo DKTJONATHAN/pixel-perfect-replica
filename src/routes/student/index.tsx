@@ -53,7 +53,7 @@ function StudentPortal() {
       {me && (
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
           <Card>
-            <h2 className="font-display text-lg font-bold">Profile</h2>
+            <h2 className="font-display text-lg font-medium">Profile</h2>
             <dl className="mt-4 space-y-2 text-sm">
               <Row label="Admission" value={me.admissionNo} />
               <Row label="Class" value={className(db as never, me.classId)} />
@@ -65,7 +65,7 @@ function StudentPortal() {
 
           <Card className="p-0 overflow-hidden">
             <div className="border-b border-border px-5 py-4">
-              <h2 className="font-display text-lg font-bold">Recent grades</h2>
+              <h2 className="font-display text-lg font-medium">Recent grades</h2>
             </div>
             <div className="divide-y divide-border">
               {myGrades.slice(0, 8).map((g) => (
@@ -102,7 +102,7 @@ function Metric({
         <Icon className="size-5" />
       </div>
       <p className="mt-4 text-sm text-muted-foreground">{label}</p>
-      <p className="font-display text-2xl font-bold">{value}</p>
+      <p className="font-display text-2xl font-medium">{value}</p>
     </Card>
   );
 }
