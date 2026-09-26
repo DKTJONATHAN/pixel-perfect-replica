@@ -7,6 +7,7 @@ import { Badge, Button, Card, Input, Modal, Select, TextArea } from "@/component
 import { useSchool } from "@/context/SchoolProvider";
 import { className, downloadCsv, fullName, money, prettyDate } from "@/lib/format";
 import { getSupabase } from "@/lib/supabase";
+import { studentFeeSummary } from "@/lib/feeStatement";
 import { TERMS, type Payment } from "@/lib/types";
 
 export const Route = createFileRoute("/admin/fees")({
@@ -46,22 +47,29 @@ function FeesPage() {
   const outstanding = useMemo(() => {
     return db.students
       .filter((s) => s.status === "Active" && !s.archived)
-      .map((s) => {
-        const cls = db.classes.find((c) => c.id === s.classId);
-        const billed = cls?.feePerTerm ?? 0;
-        const paid = db.payments
-          .filter((p) => p.studentId === s.id && p.term === term)
-          .reduce((sum, p) => sum + p.amount, 0);
-        return { student: s, billed, paid, balance: Math.max(billed - paid, 0) };
+      .map((student) => {
+        const summary = studentFeeSummary(db, student);
+        const index = Math.max(0, TERMS.indexOf(term));
+        const selected = summary.terms[index] ?? summary.terms[0]!;
+        return {
+          student,
+          summary,
+          billed: summary.annualBilled,
+          paid: summary.totalPaid,
+          balance: summary.totalArrears,
+          credit: summary.annualCredit,
+          selected,
+        };
       })
-      .sort((a, b) => b.balance - a.balance);
-  }, [db.students, db.classes, db.payments, term]);
+      .sort((a, b) => b.balance - a.balance || b.credit - a.credit);
+  }, [db, term]);
 
   const totals = useMemo(
     () => ({
       billed: outstanding.reduce((n, r) => n + r.billed, 0),
       paid: outstanding.reduce((n, r) => n + r.paid, 0),
       balance: outstanding.reduce((n, r) => n + r.balance, 0),
+      credit: outstanding.reduce((n, r) => n + r.credit, 0),
     }),
     [outstanding],
   );
@@ -69,7 +77,7 @@ function FeesPage() {
   function exportArrears() {
     downloadCsv(
       `arrears-${term.replace(/\s/g, "-").toLowerCase()}.csv`,
-      ["Admission", "Learner", "Class", "Billed", "Paid", "Balance"],
+      ["Admission", "Learner", "Class", "Annual billed", "Total paid", "Arrears", "Credit"],
       outstanding.map((r) => [
         r.student.admissionNo,
         fullName(r.student),
@@ -77,6 +85,7 @@ function FeesPage() {
         r.billed,
         r.paid,
         r.balance,
+        r.credit,
       ]),
     );
   }
@@ -95,7 +104,7 @@ function FeesPage() {
     >
       <div className="grid gap-4 sm:grid-cols-3">
         <Card className="p-5">
-          <p className="text-xs text-muted-foreground uppercase">Billed · {term}</p>
+          <p className="text-xs text-muted-foreground uppercase">Annual fee</p>
           <p className="mt-1 font-display text-2xl font-medium">{money(totals.billed, currency)}</p>
         </Card>
         <Card className="p-5">
@@ -105,7 +114,7 @@ function FeesPage() {
           </p>
         </Card>
         <Card className="p-5">
-          <p className="text-xs text-muted-foreground uppercase">Outstanding</p>
+          <p className="text-xs text-muted-foreground uppercase">Annual arrears</p>
           <p className="mt-1 font-display text-2xl font-medium text-destructive">
             {money(totals.balance, currency)}
           </p>
@@ -140,9 +149,10 @@ function FeesPage() {
               <tr className="border-b border-border bg-muted/40 text-xs uppercase text-muted-foreground">
                 <th className="px-5 py-3">Learner</th>
                 <th className="px-5 py-3">Class</th>
-                <th className="px-5 py-3">Billed</th>
-                <th className="px-5 py-3">Paid</th>
-                <th className="px-5 py-3">Balance</th>
+                <th className="px-5 py-3">Annual billed</th>
+                <th className="px-5 py-3">Total paid</th>
+                <th className="px-5 py-3">Term allocation</th>
+                <th className="px-5 py-3">Arrears / credit</th>
               </tr>
             </thead>
             <tbody>
@@ -153,9 +163,19 @@ function FeesPage() {
                   <td className="px-5 py-3">{money(r.billed, currency)}</td>
                   <td className="px-5 py-3">{money(r.paid, currency)}</td>
                   <td className="px-5 py-3">
-                    <Badge tone={r.balance === 0 ? "success" : "danger"}>
-                      {r.balance === 0 ? "Cleared" : money(r.balance, currency)}
-                    </Badge>
+                    <span className="font-medium">{term}</span>
+                    <div className="text-xs text-muted-foreground">
+                      Allocated {money(r.selected.allocatedPaid, currency)} · carried {money(r.selected.creditAfterTerm, currency)}
+                    </div>
+                  </td>
+                  <td className="px-5 py-3">
+                    {r.credit > 0 ? (
+                      <Badge tone="success">Credit {money(r.credit, currency)}</Badge>
+                    ) : r.balance > 0 ? (
+                      <Badge tone="danger">{money(r.balance, currency)}</Badge>
+                    ) : (
+                      <Badge tone="success">Cleared</Badge>
+                    )}
                   </td>
                 </tr>
               ))}
