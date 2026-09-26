@@ -97,7 +97,7 @@ function TeacherForm() {
         teacherEmployment: employment,
         password,
       });
-      setResult(`Teacher registered. Staff number: ${res.staffNo} (use this to sign in).`);
+      setResult(`Teacher registered successfully. Login ID: ${res.staffNo} | Initial password: ${password} | Give these details to the teacher, ask them to sign in on their own device and change the password immediately.`);
       toast.success("Teacher registered");
       setFullName("");
       setPassword("");
@@ -137,6 +137,7 @@ function TeacherForm() {
         <Field label="Initial password">
           <Input
             type="password"
+            autoComplete="new-password"
             required
             minLength={6}
             value={password}
@@ -237,7 +238,7 @@ function SupportForm() {
         roleLabel,
         password,
       });
-      setResult(`Staff registered. Staff number: ${res.staffNo}`);
+      setResult(`Staff registered successfully. Login ID: ${res.staffNo} | Initial password: ${password} | Give these details to the staff member, ask them to sign in on their own device and change the password immediately.`);
       toast.success("Support staff registered");
       setFullName("");
       setPassword("");
@@ -302,6 +303,7 @@ function SupportForm() {
         <Field label="Initial password">
           <Input
             type="password"
+            autoComplete="new-password"
             required
             minLength={6}
             value={password}
@@ -351,7 +353,7 @@ function StudentForm() {
         guardianName,
         guardianPhone,
       });
-      setResult(`Student admitted. Admission no: ${res.admissionNo}`);
+      setResult(`Student registered successfully. Login ID: ${res.admissionNo} | Initial password: ${password} | Give these details to the student/guardian, ask them to sign in on their own device and change the password immediately.`);
       toast.success("Student registered");
       setFirstName("");
       setLastName("");
@@ -405,6 +407,7 @@ function StudentForm() {
         <Field label="Initial password">
           <Input
             type="password"
+            autoComplete="new-password"
             required
             minLength={6}
             value={password}
@@ -458,7 +461,7 @@ function ParentForm() {
         password,
         studentIds,
       });
-      setResult("Parent account created and linked to selected students.");
+      setResult(`Parent registered successfully. Login ID: ${phone.replace(/\\D/g, "") || phone} | Initial password: ${password} | Give these details to the parent, ask them to sign in on their own device and change the password immediately.`);
       toast.success("Parent registered");
       setPassword("");
     } catch (err) {
@@ -487,6 +490,7 @@ function ParentForm() {
         <Field label="Initial password">
           <Input
             type="password"
+            autoComplete="new-password"
             required
             minLength={6}
             value={password}
