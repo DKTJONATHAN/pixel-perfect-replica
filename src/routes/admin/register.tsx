@@ -461,7 +461,7 @@ function ParentForm() {
         password,
         studentIds,
       });
-      setResult(`Parent registered successfully. Login ID: ${phone.replace(/\\D/g, "") || phone} | Initial password: ${password} | Give these details to the parent, ask them to sign in on their own device and change the password immediately.`);
+      setResult(`Parent registered successfully. Login ID: ${phone.replace(/\D/g, "") || phone} | Initial password: ${password} | Give these details to the parent, ask them to sign in on their own device and change the password immediately.`);
       toast.success("Parent registered");
       setPassword("");
     } catch (err) {
