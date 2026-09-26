@@ -191,6 +191,21 @@ export async function fetchSchoolData(): Promise<SchoolData> {
     status: a.status as StaffAttendanceRecord["status"],
   }));
 
+  const duty = (dutyRes.data ?? []).map((d) => ({
+    id: d.id,
+    weekStart: d.week_start,
+    staffId: d.staff_id,
+    duty: d.duty,
+    notes: d.notes ?? "",
+  }));
+
+  const assignments = (assignRes.data ?? []).map((a) => ({
+    id: a.id,
+    staffId: a.staff_id,
+    classId: a.class_id,
+    subject: a.subject,
+  }));
+
   return {
     settings,
     classes,
@@ -202,6 +217,8 @@ export async function fetchSchoolData(): Promise<SchoolData> {
     payments,
     leave,
     activity,
+    duty,
+    assignments,
   };
 }
 
