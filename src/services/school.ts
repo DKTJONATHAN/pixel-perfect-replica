@@ -64,6 +64,8 @@ export async function fetchSchoolData(): Promise<SchoolData> {
     leaveRes,
     activityRes,
     staffAttendanceRes,
+    dutyRes,
+    assignRes,
   ] = await Promise.all([
     fetchSchoolSettings(),
     sb.from("classes").select("*").order("name"),
@@ -75,6 +77,9 @@ export async function fetchSchoolData(): Promise<SchoolData> {
     sb.from("leave_requests").select("*").order("requested_at", { ascending: false }),
     sb.from("activity_log").select("*").order("at", { ascending: false }).limit(40),
     sb.from("staff_attendance").select("*").order("date", { ascending: false }).limit(500),
+    // These tables come from the 006 SQL script; if not run yet they simply return empty.
+    sb.from("duty_roster").select("*").order("week_start", { ascending: false }).limit(200),
+    sb.from("teaching_assignments").select("*"),
   ]);
 
   const classes: SchoolClass[] = (classesRes.data ?? []).map((c) => ({
@@ -125,6 +130,12 @@ export async function fetchSchoolData(): Promise<SchoolData> {
     salary: Number(m.salary),
     status: m.status as Staff["status"],
     archived: m.archived,
+    staffCategory: (m.staff_category as Staff["staffCategory"]) ?? "Support",
+    teacherEmployment: (m.teacher_employment as Staff["teacherEmployment"]) ?? null,
+    tscRegistered: Boolean(m.tsc_registered),
+    tscNumber: m.tsc_number,
+    supportDepartment: (m.support_department as Staff["supportDepartment"]) ?? null,
+    loginEmail: m.login_email,
   }));
 
   const attendance: AttendanceRecord[] = (attendanceRes.data ?? []).map((a) => ({
