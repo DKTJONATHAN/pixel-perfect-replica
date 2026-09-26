@@ -96,17 +96,17 @@ function FeesPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <Card className="p-5">
           <p className="text-xs text-muted-foreground uppercase">Billed · {term}</p>
-          <p className="mt-1 font-display text-2xl font-bold">{money(totals.billed, currency)}</p>
+          <p className="mt-1 font-display text-2xl font-medium">{money(totals.billed, currency)}</p>
         </Card>
         <Card className="p-5">
           <p className="text-xs text-muted-foreground uppercase">Collected</p>
-          <p className="mt-1 font-display text-2xl font-bold text-success">
+          <p className="mt-1 font-display text-2xl font-medium text-success">
             {money(totals.paid, currency)}
           </p>
         </Card>
         <Card className="p-5">
           <p className="text-xs text-muted-foreground uppercase">Outstanding</p>
-          <p className="mt-1 font-display text-2xl font-bold text-destructive">
+          <p className="mt-1 font-display text-2xl font-medium text-destructive">
             {money(totals.balance, currency)}
           </p>
         </Card>
@@ -131,7 +131,7 @@ function FeesPage() {
       </Card>
 
       <Card className="mt-6 overflow-hidden p-0">
-        <h2 className="border-b border-border px-5 py-3 font-display font-bold">
+        <h2 className="border-b border-border px-5 py-3 font-display font-medium">
           Fee balances · {term}
         </h2>
         <div className="overflow-x-auto">
@@ -168,7 +168,7 @@ function FeesPage() {
       </Card>
 
       <Card className="mt-6 overflow-hidden p-0">
-        <h2 className="border-b border-border px-5 py-3 font-display font-bold">Recent receipts</h2>
+        <h2 className="border-b border-border px-5 py-3 font-display font-medium">Recent receipts</h2>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[700px] text-left text-sm">
             <thead>

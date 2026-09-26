@@ -54,7 +54,7 @@ function AdminPortal() {
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.4fr_1fr]">
         <Card className="overflow-hidden p-0">
           <div className="border-b border-border px-5 py-4">
-            <h2 className="font-display text-lg font-bold">Recent activity</h2>
+            <h2 className="font-display text-lg font-medium">Recent activity</h2>
           </div>
           <div className="divide-y divide-border">
             {db.activity.slice(0, 8).map((a) => (
@@ -73,7 +73,7 @@ function AdminPortal() {
         <Card>
           <div className="flex items-center gap-2">
             <AlertCircle className="size-5 text-warning" />
-            <h2 className="font-display text-lg font-bold">Needs attention</h2>
+            <h2 className="font-display text-lg font-medium">Needs attention</h2>
           </div>
           <div className="mt-5 space-y-3">
             <div className="flex justify-between rounded-lg bg-muted p-3 text-sm">
@@ -90,7 +90,7 @@ function AdminPortal() {
 
       <Card className="mt-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-display text-lg font-bold">Latest students</h2>
+          <h2 className="font-display text-lg font-medium">Latest students</h2>
           <Badge tone="primary">{db.students.length} total</Badge>
         </div>
         <div className="overflow-x-auto">
@@ -139,7 +139,7 @@ function Metric({
         <Icon className="size-5" />
       </div>
       <p className="mt-4 text-sm text-muted-foreground">{label}</p>
-      <p className="font-display text-2xl font-bold">{value}</p>
+      <p className="font-display text-2xl font-medium">{value}</p>
     </Card>
   );
 }

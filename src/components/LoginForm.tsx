@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, LockKeyhole, School } from "lucide-react";
+import { LockKeyhole, School } from "lucide-react";
 import { useAuth } from "@/context/AuthProvider";
 import type { Role } from "@/lib/types";
 import { Button, Input } from "@/components/UI";
@@ -67,12 +67,12 @@ export function LoginForm({
               </div>
               <div>
                 <b className="font-display text-xl">KidRight</b>
-                <p className="text-xs uppercase tracking-widest opacity-60">Academy</p>
+                <p className="text-xs tracking-wide opacity-60">Academy</p>
               </div>
             </div>
             <div className="mt-28 max-w-xl">
-              <p className="text-sm font-semibold uppercase tracking-widest text-accent">{title}</p>
-              <h1 className="mt-4 font-display text-4xl font-bold">Sign in with your school ID.</h1>
+              <p className="text-sm font-medium text-accent">{title}</p>
+              <h1 className="mt-4 font-display text-4xl font-medium">Sign in with your school ID.</h1>
               <p className="mt-5 text-sidebar-foreground/65">
                 Staff use their 10-digit staff number. Students use admission number. Parents use phone
                 or email. Admins use email.
@@ -91,7 +91,7 @@ export function LoginForm({
                 <div className="mb-3 grid size-11 place-items-center rounded-xl bg-primary-soft text-primary">
                   <LockKeyhole />
                 </div>
-                <h2 className="font-display text-2xl font-bold">{title}</h2>
+                <h2 className="font-display text-2xl font-medium">{title}</h2>
                 <p className="text-sm text-muted-foreground">Use the credentials for this portal.</p>
               </div>
 
@@ -129,7 +129,7 @@ export function LoginForm({
                 </div>
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 <Button className="w-full" loading={loading} type="submit">
-                  Sign in <ArrowRight className="size-4" />
+                  Sign in
                 </Button>
               </form>
 

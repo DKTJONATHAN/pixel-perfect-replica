@@ -50,7 +50,7 @@ function SignupPage() {
     <div className="w-full max-w-md">
       <div className="mb-8 text-center">
         <div className="mx-auto grid size-12 place-items-center rounded-2xl gradient-hero text-primary-foreground"><RoleIcon className="size-6"/></div>
-        <h1 className="mt-4 font-display text-2xl font-bold">{roleInfo.title}</h1>
+        <h1 className="mt-4 font-display text-2xl font-medium">{roleInfo.title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{roleInfo.description}</p>
       </div>
       <div className="surface-card p-8">
