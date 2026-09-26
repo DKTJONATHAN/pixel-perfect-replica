@@ -1,24 +1,58 @@
-// Per-learner fee statement export (CSV opens in Excel).
+// Per-learner fee statement and annual carry-forward calculations.
 import { className, downloadCsv, fullName } from "@/lib/format";
 import { TERMS, type SchoolData, type Student } from "@/lib/types";
 
+export interface StudentFeeTerm {
+  term: string;
+  billed: number;
+  paidAcrossAllTerms: number;
+  allocatedPaid: number;
+  balance: number;
+  creditAfterTerm: number;
+}
+
+/**
+ * Fees are treated as one annual ledger, not three isolated term accounts.
+ * All payments count toward the learner's annual total regardless of the term
+ * selected when the receipt was entered. Excess paid in an earlier term is
+ * therefore carried forward automatically to the next term.
+ */
 export function studentFeeSummary(db: SchoolData, student: Student) {
   const cls = db.classes.find((c) => c.id === student.classId);
   const teacher = db.staff.find((s) => s.id === cls?.teacherId);
   const perTerm = cls?.feePerTerm ?? 0;
-  const terms = TERMS.map((term) => {
-    const paid = db.payments
-      .filter((p) => p.studentId === student.id && p.term === term)
-      .reduce((n, p) => n + p.amount, 0);
-    return { term, billed: perTerm, paid, balance: Math.max(perTerm - paid, 0) };
+  const payments = db.payments.filter((p) => p.studentId === student.id);
+  const totalPaid = payments.reduce((n, p) => n + p.amount, 0);
+  let remainingPaid = totalPaid;
+
+  const terms: StudentFeeTerm[] = TERMS.map((term) => {
+    const billed = perTerm;
+    const allocatedPaid = Math.min(remainingPaid, billed);
+    const balance = Math.max(billed - allocatedPaid, 0);
+    remainingPaid = Math.max(remainingPaid - billed, 0);
+    return {
+      term,
+      billed,
+      paidAcrossAllTerms: totalPaid,
+      allocatedPaid,
+      balance,
+      creditAfterTerm: remainingPaid,
+    };
   });
+
+  const annualBilled = terms.reduce((n, t) => n + t.billed, 0);
+  const annualArrears = Math.max(annualBilled - totalPaid, 0);
+  const annualCredit = Math.max(totalPaid - annualBilled, 0);
+
   return {
     className: className(db, student.classId),
     classTeacher: teacher?.fullName ?? "Unassigned",
     terms,
-    totalPaid: terms.reduce((n, t) => n + t.paid, 0),
-    totalArrears: terms.reduce((n, t) => n + t.balance, 0),
-    payments: db.payments.filter((p) => p.studentId === student.id),
+    annualBilled,
+    totalPaid,
+    totalArrears: annualArrears,
+    annualCredit,
+    payments,
   };
 }
 
@@ -35,12 +69,12 @@ export function exportStudentFeeStatement(db: SchoolData, student: Student) {
     ["Parent email", student.guardianEmail || "—"],
     ["Academic year", db.settings.academicYear],
     [],
-    ["Term", `Billed (${cur})`, `Paid (${cur})`, `Arrears (${cur})`],
-    ...s.terms.map((t) => [t.term, t.billed, t.paid, t.balance]),
-    ["Total", s.terms.reduce((n, t) => n + t.billed, 0), s.totalPaid, s.totalArrears],
+    ["Term", "Billed (" + cur + ")", "Allocated paid (" + cur + ")", "Arrears (" + cur + ")", "Credit carried (" + cur + ")"],
+    ...s.terms.map((t) => [t.term, t.billed, t.allocatedPaid, t.balance, t.creditAfterTerm]),
+    ["Annual total", s.annualBilled, s.totalPaid, s.totalArrears, s.annualCredit],
     [],
-    ["Receipt", "Term", "Date", "Method", `Amount (${cur})`],
+    ["Receipt", "Entered term", "Date", "Method", "Amount (" + cur + ")"],
     ...s.payments.map((p) => [p.receiptNo, p.term, p.date, p.method, p.amount]),
   ];
-  downloadCsv(`fee-statement-${student.admissionNo}.csv`, [db.settings.schoolName, "Fee statement"], rows);
+  downloadCsv("fee-statement-" + student.admissionNo + ".csv", [db.settings.schoolName, "Annual fee statement"], rows);
 }
