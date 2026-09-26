@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthProvider";
 import { useSchool } from "@/context/SchoolProvider";
 import { className, downloadCsv, exportStudentRecord, fullName, money, prettyDate } from "@/lib/format";
 import { studentFeeSummary } from "@/lib/feeStatement";
+import { computeTermResult } from "@/lib/grades";
 import { TERMS } from "@/lib/types";
 import { getSupabase } from "@/lib/supabase";
 
@@ -71,13 +72,16 @@ function StudentPortal() {
             <Download className="size-4" /> Download my record
           </Button>
           <Button variant="outline" size="sm" onClick={() => {
-            const rows = db.grades
-              .filter((g) => g.studentId === me.id && g.term === term)
-              .map((g) => [g.subject, g.score]);
+            const result = computeTermResult(me.id, term, db.grades);
             downloadCsv(
               me.admissionNo + "-" + term.replace(/\s+/g, "-").toLowerCase() + "-report.csv",
               ["Subject", "Score", "Grade"],
-              rows.map(([subject, score]) => [subject, score, Number(score) >= 80 ? "A" : Number(score) >= 70 ? "B" : Number(score) >= 60 ? "C" : Number(score) >= 50 ? "D" : "E"]),
+              [
+                ...result.subjects.map((s) => [s.subject, s.score, s.grade] as (string | number)[]),
+                ["TOTAL", result.total, ""],
+                ["AVERAGE", result.average, ""],
+                ["OVERALL GRADE", "", result.overallGrade],
+              ],
             );
           }}>
             <Download className="size-4" /> Download report
