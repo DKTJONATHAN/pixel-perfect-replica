@@ -4,22 +4,36 @@ import { AppShell } from "@/components/AppShell";
 import { Badge, Button, Card } from "@/components/UI";
 import { useAuth } from "@/context/AuthProvider";
 import { useSchool } from "@/context/SchoolProvider";
-import { className, exportStudentRecord, fullName, money, prettyDate } from "@/lib/format";
+import { className, downloadCsv, exportStudentRecord, fullName, money, prettyDate } from "@/lib/format";
+import { studentFeeSummary } from "@/lib/feeStatement";
+import { TERMS } from "@/lib/types";
+import { getSupabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/student/")({ component: StudentPortal });
 
 function StudentPortal() {
   const { user } = useAuth();
-  const { db } = useSchool();
+  const { db, refresh } = useSchool();
   const me = db.students.find((s) => s.id === user?.studentId);
 
+  const [term, setTerm] = useState(db.settings.currentTerm || TERMS[0]!);
   const myGrades = me ? db.grades.filter((g) => g.studentId === me.id) : [];
   const myAttendance = me ? db.attendance.filter((a) => a.studentId === me.id) : [];
   const present = myAttendance.filter((a) => a.status === "Present").length;
-  const myPayments = me ? db.payments.filter((p) => p.studentId === me.id) : [];
-  const paid = myPayments.reduce((a, p) => a + p.amount, 0);
-  const cls = me ? db.classes.find((c) => c.id === me.classId) : null;
-  const balance = (cls?.feePerTerm ?? 0) - paid;
+  const feeSummary = me ? studentFeeSummary(db, me) : null;
+
+  useEffect(() => {
+    if (!me) return;
+    const sb = getSupabase();
+    const channel = sb
+      .channel("student-live-updates")
+      .on("postgres_changes", { event: "*", schema: "public", table: "grades" }, () => void refresh())
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, () => void refresh())
+      .subscribe();
+    return () => {
+      void sb.removeChannel(channel);
+    };
+  }, [me?.id, refresh]);
 
   return (
     <AppShell
@@ -46,14 +60,26 @@ function StudentPortal() {
         <Metric
           icon={Wallet}
           label="Fee balance"
-          value={money(Math.max(0, balance), db.settings.currency)}
+          value={feeSummary ? feeSummary.totalArrears > 0 ? money(feeSummary.totalArrears, db.settings.currency) : feeSummary.annualCredit > 0 ? "Credit " + money(feeSummary.annualCredit, db.settings.currency) : "Cleared" : "—"}
         />
       </div>
 
       {me && (
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex flex-wrap justify-end gap-2">
           <Button variant="outline" size="sm" onClick={() => exportStudentRecord(db, me)}>
-            <Download className="size-4" /> Export my record
+            <Download className="size-4" /> Download my record
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => {
+            const rows = db.grades
+              .filter((g) => g.studentId === me.id && g.term === term)
+              .map((g) => [g.subject, g.score]);
+            downloadCsv(
+              me.admissionNo + "-" + term.replace(/\s+/g, "-").toLowerCase() + "-report.csv",
+              ["Subject", "Score", "Grade"],
+              rows.map(([subject, score]) => [subject, score, Number(score) >= 80 ? "A" : Number(score) >= 70 ? "B" : Number(score) >= 60 ? "C" : Number(score) >= 50 ? "D" : "E"]),
+            );
+          }}>
+            <Download className="size-4" /> Download report
           </Button>
         </div>
       )}
@@ -73,19 +99,25 @@ function StudentPortal() {
 
           <Card className="p-0 overflow-hidden">
             <div className="border-b border-border px-5 py-4">
-              <h2 className="font-display text-lg font-medium">Recent grades</h2>
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="font-display text-lg font-medium">My report · {term}</h2>
+                <Select value={term} onChange={(e) => setTerm(e.target.value)}>
+                  {TERMS.map((t) => <option key={t}>{t}</option>)}
+                </Select>
+              </div>
             </div>
             <div className="divide-y divide-border">
-              {myGrades.slice(0, 8).map((g) => (
+              {myGrades.filter((g) => g.term === term).map((g) => (
                 <div key={g.id} className="flex items-center justify-between px-5 py-3 text-sm">
-                  <span>
-                    {g.subject} · {g.term}
-                  </span>
-                  <Badge tone={g.score >= 50 ? "success" : "danger"}>{g.score}</Badge>
+                  <span>{g.subject}</span>
+                  <div className="flex items-center gap-3">
+                    <span>{g.score}</span>
+                    <Badge tone={g.score >= 50 ? "success" : "danger"}>{g.score >= 80 ? "A" : g.score >= 70 ? "B" : g.score >= 60 ? "C" : g.score >= 50 ? "D" : "E"}</Badge>
+                  </div>
                 </div>
               ))}
-              {myGrades.length === 0 && (
-                <p className="px-5 py-8 text-center text-sm text-muted-foreground">No grades yet.</p>
+              {myGrades.filter((g) => g.term === term).length === 0 && (
+                <p className="px-5 py-8 text-center text-sm text-muted-foreground">No grades entered for this term yet.</p>
               )}
             </div>
           </Card>
