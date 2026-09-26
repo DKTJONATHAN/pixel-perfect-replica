@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthProvider";
 import { useSchool } from "@/context/SchoolProvider";
 import { computeTermResult } from "@/lib/grades";
 import { className, downloadCsv, fullName, money, prettyDate } from "@/lib/format";
+import { studentFeeSummary } from "@/lib/feeStatement";
 import { TERMS } from "@/lib/types";
 import { getSupabase } from "@/lib/supabase";
 
@@ -14,7 +15,7 @@ export const Route = createFileRoute("/parent/")({ component: ParentPortal });
 
 function ParentPortal() {
   const { user } = useAuth();
-  const { db } = useSchool();
+  const { db, refresh } = useSchool();
   const [linkedIds, setLinkedIds] = useState<string[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [term, setTerm] = useState(db.settings.currentTerm || TERMS[0]!);
@@ -54,10 +55,20 @@ function ParentPortal() {
     : 0;
 
   const payments = student ? db.payments.filter((p) => p.studentId === student.id) : [];
-  const paid = payments.reduce((a, p) => a + p.amount, 0);
-  const cls = student ? db.classes.find((c) => c.id === student.classId) : null;
-  const fee = cls?.feePerTerm ?? 0;
-  const arrears = Math.max(0, fee - paid);
+  const feeSummary = student ? studentFeeSummary(db, student) : null;
+
+  useEffect(() => {
+    if (!student) return;
+    const sb = getSupabase();
+    const channel = sb
+      .channel("parent-live-updates")
+      .on("postgres_changes", { event: "*", schema: "public", table: "grades" }, () => void refresh())
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, () => void refresh())
+      .subscribe();
+    return () => {
+      void sb.removeChannel(channel);
+    };
+  }, [student?.id, refresh]);
 
   function exportPerformance() {
     if (!student || !result) return;
@@ -198,18 +209,34 @@ function ParentPortal() {
                 </div>
                 <div className="mt-4 space-y-3 text-sm">
                   <div className="flex justify-between rounded-lg bg-muted p-3">
-                    <span>Term fee</span>
-                    <b>{money(fee, db.settings.currency)}</b>
+                    <span>Annual fee</span>
+                    <b>{money(feeSummary?.annualBilled ?? 0, db.settings.currency)}</b>
                   </div>
                   <div className="flex justify-between rounded-lg bg-muted p-3">
-                    <span>Paid</span>
-                    <b>{money(paid, db.settings.currency)}</b>
+                    <span>Total paid</span>
+                    <b>{money(feeSummary?.totalPaid ?? 0, db.settings.currency)}</b>
                   </div>
                   <div className="flex justify-between rounded-lg bg-muted p-3">
-                    <span>Arrears</span>
-                    <b className={arrears > 0 ? "text-destructive" : "text-success"}>
-                      {money(arrears, db.settings.currency)}
+                    <span>Arrears / credit</span>
+                    <b className={feeSummary?.annualCredit ? "text-success" : feeSummary?.totalArrears ? "text-destructive" : "text-success"}>
+                      {feeSummary?.annualCredit
+                        ? "Credit " + money(feeSummary.annualCredit, db.settings.currency)
+                        : money(feeSummary?.totalArrears ?? 0, db.settings.currency)}
                     </b>
+                  </div>
+                  <div className="rounded-lg border border-border p-3">
+                    <p className="text-xs font-semibold uppercase text-muted-foreground">Term allocation</p>
+                    <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                      {(feeSummary?.terms ?? []).map((t) => (
+                        <div key={t.term} className="rounded-md bg-muted p-2">
+                          <p className="text-xs font-medium">{t.term}</p>
+                          <p className="text-sm">Allocated {money(t.allocatedPaid, db.settings.currency)}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {t.balance > 0 ? "Arrears " + money(t.balance, db.settings.currency) : t.creditAfterTerm > 0 ? "Carry " + money(t.creditAfterTerm, db.settings.currency) : "Cleared"}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
                 <h3 className="mt-6 text-sm font-semibold">Payment history</h3>
