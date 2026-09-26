@@ -56,7 +56,7 @@ export function getSupabase() {
     );
   }
   if (!client) {
-    client = createClient<Database>(url!, anonKey!, {
+    client = createClient(url!, anonKey!, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
@@ -68,7 +68,7 @@ export function getSupabase() {
 }
 
 export function createIsolatedSupabaseClient() {
-  return createClient<Database>(url!, anonKey!, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
+  return createClient(url!, anonKey!, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
 }
 
 export function getSupabaseConfigStatus() {

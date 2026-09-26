@@ -67,7 +67,10 @@ function DutiesPage() {
   }
 
   const addDuty = () => {
-    if (!dutyStaff) return toast.error("Choose a staff member");
+    if (!dutyStaff) {
+      toast.error("Choose a staff member");
+      return;
+    }
     void run(
       () => getSupabase().from("duty_roster").insert({ week_start: mondayOf(new Date(week)), staff_id: dutyStaff, duty }),
       `${name(dutyStaff)} set as ${duty.toLowerCase()}`,
@@ -75,7 +78,10 @@ function DutiesPage() {
   };
 
   const addAssignment = () => {
-    if (!aStaff || !aClass) return toast.error("Choose a teacher and a class");
+    if (!aStaff || !aClass) {
+      toast.error("Choose a teacher and a class");
+      return;
+    }
     void run(
       () =>
         getSupabase()
