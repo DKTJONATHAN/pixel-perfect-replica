@@ -4,7 +4,7 @@ import { useState, type ReactNode } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Badge, Button, Card, Input } from "@/components/UI";
 import { useSchool } from "@/context/SchoolProvider";
-import { className, downloadCsv, exportStudentRecord, fullName, money, prettyDate } from "@/lib/format";
+import { className, downloadCsv, exportFeesReport, exportStudentRecord, fullName, money, prettyDate } from "@/lib/format";
 import type { SchoolData } from "@/lib/types";
 
 export const Route = createFileRoute("/staff/$section")({
@@ -92,14 +92,14 @@ function DataTable({ section, db, q }: { section: string; db: SchoolData; q: str
         <Badge key={x.id} tone={x.status === "Active" ? "success" : "neutral"}>
           {x.status}
         </Badge>,
-        <Button
-          key={`export-${x.id}`}
-          variant="ghost"
-          size="sm"
-          onClick={() => exportStudentRecord(db, x)}
-        >
-          <Download className="size-4" /> Record
-        </Button>,
+        <div key={`export-${x.id}`} className="flex gap-2">
+          <Button variant="ghost" size="sm" onClick={() => exportStudentRecord(db, x)}>
+            <Download className="size-4" /> Record
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => exportFeesReport(db, x)}>
+            <Download className="size-4" /> Fees report
+          </Button>
+        </div>,
       ]);
   } else if (section === "classes") {
     headers = ["Class", "Students", "Term fee"];

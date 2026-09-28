@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Download, Search } from "lucide-react";
+import { Check, Download, Search, X } from "lucide-react";
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
-import { Badge, Button, Card, Input } from "@/components/UI";
+import { Badge, Button, Card, Input, Select } from "@/components/UI";
 import { useSchool } from "@/context/SchoolProvider";
-import { className, downloadCsv, exportStudentRecord, fullName, money, prettyDate } from "@/lib/format";
-import type { SchoolData } from "@/lib/types";
+import { className, downloadCsv, exportFeesReport, exportStudentRecord, fullName, money, prettyDate } from "@/lib/format";
+import { getSupabase } from "@/lib/supabase";
+import type { LeaveStatus, SchoolData } from "@/lib/types";
+import { logActivity } from "@/services/school";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/$section")({ component: AdminSection });
 
@@ -23,7 +26,7 @@ const META: Record<string, [string, string | undefined]> = {
 
 function AdminSection() {
   const { section } = Route.useParams();
-  const { db } = useSchool();
+  const { db, refresh } = useSchool();
   const [q, setQ] = useState("");
   const m = META[section] ?? ["Workspace", undefined];
 
@@ -61,13 +64,23 @@ function AdminSection() {
         </div>
       </Card>
       <Card className="mt-6 overflow-hidden p-0">
-        <Table section={section} db={db} q={q} />
+        <Table section={section} db={db} q={q} refresh={refresh} />
       </Card>
     </AppShell>
   );
 }
 
-function Table({ section, db, q }: { section: string; db: SchoolData; q: string }) {
+function Table({
+  section,
+  db,
+  q,
+  refresh,
+}: {
+  section: string;
+  db: SchoolData;
+  q: string;
+  refresh: () => Promise<void>;
+}) {
   const ql = q.trim().toLowerCase();
   let headers: string[] = [];
   let rows: (string | number | React.ReactNode)[][] = [];
@@ -86,17 +99,36 @@ function Table({ section, db, q }: { section: string; db: SchoolData; q: string 
         x.admissionNo,
         className(db as never, x.classId),
         x.guardianName,
-        <Badge key={x.id} tone={x.status === "Active" ? "success" : "neutral"}>
-          {x.status}
-        </Badge>,
-        <Button
-          key={`export-${x.id}`}
-          variant="ghost"
-          size="sm"
-          onClick={() => exportStudentRecord(db, x)}
+        <Select
+          key={`status-${x.id}`}
+          value={x.status}
+          onChange={async (e) => {
+            const next = e.target.value as typeof x.status;
+            const sb = getSupabase();
+            const { error } = await sb.from("students").update({ status: next }).eq("id", x.id);
+            if (error) {
+              toast.error(error.message);
+              return;
+            }
+            await logActivity("Registrar", `Set ${fullName(x)}'s status to ${next}`);
+            await refresh();
+          }}
+          className="w-36"
         >
-          <Download className="size-4" /> Record
-        </Button>,
+          <option value="Active">Active</option>
+          <option value="Suspended">Suspended</option>
+          <option value="Expelled">Expelled</option>
+          <option value="Transferred">Transferred</option>
+          <option value="Graduated">Graduated</option>
+        </Select>,
+        <div key={`export-${x.id}`} className="flex gap-2">
+          <Button variant="ghost" size="sm" onClick={() => exportStudentRecord(db, x)}>
+            <Download className="size-4" /> Record
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => exportFeesReport(db, x)}>
+            <Download className="size-4" /> Fees report
+          </Button>
+        </div>,
       ]);
   } else if (section === "classes") {
     headers = ["Class", "Teacher", "Students", "Term fee"];
@@ -137,13 +169,64 @@ function Table({ section, db, q }: { section: string; db: SchoolData; q: string 
       .filter((x) => !ql || x.fullName.toLowerCase().includes(ql))
       .map((x) => [x.fullName, x.staffNo, x.role, x.department, x.status]);
   } else if (section === "leave") {
-    headers = ["Staff", "Type", "Dates", "Days", "Status"];
+    headers = ["Staff", "Type", "Dates", "Days", "Status", ""];
     rows = db.leave.map((x) => [
       db.staff.find((z) => z.id === x.staffId)?.fullName ?? "Staff",
       x.type,
       `${prettyDate(x.from)} – ${prettyDate(x.to)}`,
       x.days,
-      x.status,
+      <Badge
+        key={`badge-${x.id}`}
+        tone={x.status === "Approved" ? "success" : x.status === "Rejected" ? "danger" : "neutral"}
+      >
+        {x.status}
+      </Badge>,
+      x.status === "Pending" ? (
+        <div key={`actions-${x.id}`} className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={async () => {
+              const staffName = db.staff.find((z) => z.id === x.staffId)?.fullName ?? "Staff";
+              const sb = getSupabase();
+              const { error } = await sb
+                .from("leave_requests")
+                .update({ status: "Approved" satisfies LeaveStatus })
+                .eq("id", x.id);
+              if (error) {
+                toast.error(error.message);
+                return;
+              }
+              await logActivity("Registrar", `Approved ${staffName}'s ${x.type} leave`);
+              await refresh();
+            }}
+          >
+            <Check className="size-4" /> Approve
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={async () => {
+              const staffName = db.staff.find((z) => z.id === x.staffId)?.fullName ?? "Staff";
+              const sb = getSupabase();
+              const { error } = await sb
+                .from("leave_requests")
+                .update({ status: "Rejected" satisfies LeaveStatus })
+                .eq("id", x.id);
+              if (error) {
+                toast.error(error.message);
+                return;
+              }
+              await logActivity("Registrar", `Rejected ${staffName}'s ${x.type} leave`);
+              await refresh();
+            }}
+          >
+            <X className="size-4" /> Deny
+          </Button>
+        </div>
+      ) : (
+        ""
+      ),
     ]);
   } else if (section === "payroll") {
     headers = ["Staff", "Role", "Salary", "Status"];

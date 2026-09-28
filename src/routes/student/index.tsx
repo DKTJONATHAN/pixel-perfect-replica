@@ -4,7 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import { Badge, Button, Card } from "@/components/UI";
 import { useAuth } from "@/context/AuthProvider";
 import { useSchool } from "@/context/SchoolProvider";
-import { className, exportStudentRecord, fullName, money, prettyDate } from "@/lib/format";
+import { className, exportFeesReport, exportStudentRecord, fullName, money, prettyDate } from "@/lib/format";
 
 export const Route = createFileRoute("/student/")({ component: StudentPortal });
 
@@ -51,7 +51,10 @@ function StudentPortal() {
       </div>
 
       {me && (
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex justify-end gap-2">
+          <Button variant="outline" size="sm" onClick={() => exportFeesReport(db, me)}>
+            <Download className="size-4" /> Fees report
+          </Button>
           <Button variant="outline" size="sm" onClick={() => exportStudentRecord(db, me)}>
             <Download className="size-4" /> Export my record
           </Button>

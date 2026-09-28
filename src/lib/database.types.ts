@@ -59,6 +59,20 @@ export interface Database {
         Insert: { actor: string; message: string; at?: string; id?: string };
         Update: Record<string, unknown>;
       };
+      staff_attendance: {
+        Row: { id: string; date: string; staff_id: string; status: string; };
+        Insert: Record<string, unknown>; Update: Record<string, unknown>;
+      };
+      class_teachers: {
+        Row: { id: string; class_id: string; staff_id: string; note: string | null; created_at: string; };
+        Insert: { id?: string; class_id: string; staff_id: string; note?: string | null };
+        Update: Partial<Database["public"]["Tables"]["class_teachers"]["Insert"]>;
+      };
+      duty_roles: {
+        Row: { id: string; staff_id: string; role_name: string; week_start: string; notes: string | null; created_at: string; };
+        Insert: { id?: string; staff_id: string; role_name: string; week_start: string; notes?: string | null };
+        Update: Partial<Database["public"]["Tables"]["duty_roles"]["Insert"]>;
+      };
       parent_students: {
         Row: { id: string; parent_profile_id: string; student_id: string; relationship: string; };
         Insert: { id?: string; parent_profile_id: string; student_id: string; relationship?: string; is_primary?: boolean };

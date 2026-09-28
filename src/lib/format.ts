@@ -177,3 +177,65 @@ export function exportStudentRecord(
 
   triggerDownload(`${student.admissionNo}-record.csv`, lines.join("\n"), "text/csv;charset=utf-8");
 }
+
+/**
+ * A focused fees report for one student: name, class, arrears, amount paid,
+ * parent/guardian contact info, and class teacher — everything the office
+ * needs on one line, exportable per student.
+ */
+export function exportFeesReport(
+  db: {
+    classes: { id: string; name: string; stream: string; feePerTerm: number; teacherId: string | null }[];
+    staff: { id: string; fullName: string }[];
+    payments: {
+      studentId: string;
+      receiptNo: string;
+      term: string;
+      amount: number;
+      date: string;
+      method: string;
+    }[];
+    settings: { currency: string };
+  },
+  student: {
+    id: string;
+    admissionNo: string;
+    firstName: string;
+    lastName: string;
+    classId: string;
+    guardianName: string;
+    guardianPhone: string;
+    guardianEmail: string;
+  },
+) {
+  const cls = db.classes.find((c) => c.id === student.classId);
+  const teacher = cls ? db.staff.find((s) => s.id === cls.teacherId) : undefined;
+  const payments = db.payments.filter((p) => p.studentId === student.id);
+  const paid = payments.reduce((a, p) => a + p.amount, 0);
+  const termFee = cls?.feePerTerm ?? 0;
+  const arrears = Math.max(0, termFee - paid);
+
+  const lines: string[] = [];
+  const row = (cells: (string | number)[]) => lines.push(cells.map(csvEscape).join(","));
+
+  row(["Field", "Value"]);
+  row(["Name", `${student.firstName} ${student.lastName}`]);
+  row(["Admission No", student.admissionNo]);
+  row(["Class", cls ? `${cls.name} ${cls.stream}` : "Unassigned"]);
+  row(["Class Teacher", teacher?.fullName ?? "Unassigned"]);
+  row(["Term Fee", termFee]);
+  row(["Total Paid", paid]);
+  row(["Arrears", arrears]);
+  row(["Guardian Name", student.guardianName]);
+  row(["Guardian Phone", student.guardianPhone]);
+  row(["Guardian Email", student.guardianEmail]);
+  row([]);
+  row(["Receipt", "Term", "Amount", "Method", "Date"]);
+  payments.forEach((p) => row([p.receiptNo, p.term, p.amount, p.method, p.date]));
+
+  triggerDownload(
+    `${student.admissionNo}-fees-report.csv`,
+    lines.join("\n"),
+    "text/csv;charset=utf-8",
+  );
+}

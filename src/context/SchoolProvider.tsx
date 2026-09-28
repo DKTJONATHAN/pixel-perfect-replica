@@ -19,6 +19,7 @@ import { fetchSchoolData, fetchSchoolSettings } from "@/services/school";
 export type Permission =
   | "students.view"
   | "students.edit"
+  | "students.status"
   | "staff.view"
   | "staff.edit"
   | "attendance.mark"
@@ -26,6 +27,7 @@ export type Permission =
   | "fees.manage"
   | "classes.manage"
   | "leave.approve"
+  | "leave.apply"
   | "payroll.view"
   | "settings.manage"
   | "register.manage";
@@ -34,6 +36,7 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   admin: [
     "students.view",
     "students.edit",
+    "students.status",
     "staff.view",
     "staff.edit",
     "attendance.mark",
@@ -41,6 +44,7 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "fees.manage",
     "classes.manage",
     "leave.approve",
+    "leave.apply",
     "payroll.view",
     "settings.manage",
     "register.manage",
@@ -48,11 +52,15 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   registrar: [
     "students.view",
     "students.edit",
+    "students.status",
     "staff.view",
     "staff.edit",
     "classes.manage",
     "register.manage",
     "fees.manage",
+    "leave.approve",
+    "leave.apply",
+    "payroll.view",
   ],
   teacher: [
     "students.view",
@@ -60,8 +68,9 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "grades.edit",
     "staff.view",
     "classes.manage",
+    "leave.apply",
   ],
-  staff: ["students.view", "staff.view"],
+  staff: ["students.view", "staff.view", "leave.apply"],
   student: ["students.view"],
   parent: ["students.view"],
 };
@@ -75,6 +84,8 @@ const EMPTY: SchoolData = {
   grades: [],
   payments: [],
   leave: [],
+  classTeachers: [],
+  dutyRoles: [],
   activity: [],
   settings: {
     schoolName: "KidRight Academy",

@@ -18,6 +18,7 @@ import {
   Plane,
   School,
   Settings as SettingsIcon,
+  ShieldCheck,
   Sun,
   UserPlus,
   Users,
@@ -71,6 +72,10 @@ const NAV_BY_PORTAL: Record<string, { group: string; items: NavItem[] }[]> = {
         { to: "/staff/grades", label: "Grades list", icon: ClipboardList, permission: "grades.edit" },
       ],
     },
+    {
+      group: "My work",
+      items: [{ to: "/staff/leave", label: "Leave", icon: Plane, permission: "leave.apply" }],
+    },
   ],
   admin: [
     {
@@ -99,7 +104,13 @@ const NAV_BY_PORTAL: Record<string, { group: string; items: NavItem[] }[]> = {
       group: "Staff",
       items: [
         { to: "/admin/staff", label: "Staff", icon: Users, permission: "staff.view" },
-        { to: "/admin/leave", label: "Leave", icon: Plane, permission: "staff.view" },
+        {
+          to: "/admin/staff-roles",
+          label: "Roles & duty",
+          icon: ShieldCheck,
+          permission: "staff.edit",
+        },
+        { to: "/admin/leave", label: "Leave", icon: Plane, permission: "leave.approve" },
         { to: "/admin/payroll", label: "Payroll", icon: Wallet, permission: "payroll.view" },
       ],
     },

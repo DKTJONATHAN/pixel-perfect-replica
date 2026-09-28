@@ -2,6 +2,8 @@ import { getSupabase } from "@/lib/supabase";
 import type {
   Activity,
   AttendanceRecord,
+  ClassTeacherAssignment,
+  DutyRole,
   GradeRecord,
   LeaveRequest,
   Payment,
@@ -64,6 +66,8 @@ export async function fetchSchoolData(): Promise<SchoolData> {
     leaveRes,
     activityRes,
     staffAttendanceRes,
+    classTeachersRes,
+    dutyRolesRes,
   ] = await Promise.all([
     fetchSchoolSettings(),
     sb.from("classes").select("*").order("name"),
@@ -75,6 +79,8 @@ export async function fetchSchoolData(): Promise<SchoolData> {
     sb.from("leave_requests").select("*").order("requested_at", { ascending: false }),
     sb.from("activity_log").select("*").order("at", { ascending: false }).limit(40),
     sb.from("staff_attendance").select("*").order("date", { ascending: false }).limit(500),
+    sb.from("class_teachers").select("*"),
+    sb.from("duty_roles").select("*").order("week_start", { ascending: false }).limit(100),
   ]);
 
   const classes: SchoolClass[] = (classesRes.data ?? []).map((c) => ({
@@ -125,6 +131,12 @@ export async function fetchSchoolData(): Promise<SchoolData> {
     salary: Number(m.salary),
     status: m.status as Staff["status"],
     archived: m.archived,
+    staffCategory: (m.staff_category as Staff["staffCategory"]) ?? "Support",
+    teacherEmployment: (m.teacher_employment as Staff["teacherEmployment"]) ?? null,
+    tscRegistered: m.tsc_registered ?? false,
+    tscNumber: m.tsc_number ?? null,
+    supportDepartment: (m.support_department as Staff["supportDepartment"]) ?? null,
+    loginEmail: m.login_email ?? null,
   }));
 
   const attendance: AttendanceRecord[] = (attendanceRes.data ?? []).map((a) => ({
@@ -180,6 +192,21 @@ export async function fetchSchoolData(): Promise<SchoolData> {
     status: a.status as StaffAttendanceRecord["status"],
   }));
 
+  const classTeachers: ClassTeacherAssignment[] = (classTeachersRes.data ?? []).map((c) => ({
+    id: c.id,
+    classId: c.class_id,
+    staffId: c.staff_id,
+    note: c.note ?? null,
+  }));
+
+  const dutyRoles: DutyRole[] = (dutyRolesRes.data ?? []).map((d) => ({
+    id: d.id,
+    staffId: d.staff_id,
+    roleName: d.role_name,
+    weekStart: d.week_start,
+    notes: d.notes ?? null,
+  }));
+
   return {
     settings,
     classes,
@@ -190,6 +217,8 @@ export async function fetchSchoolData(): Promise<SchoolData> {
     grades,
     payments,
     leave,
+    classTeachers,
+    dutyRoles,
     activity,
   };
 }

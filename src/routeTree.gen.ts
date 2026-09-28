@@ -23,6 +23,7 @@ import { Route as AdminClassesRouteImport } from './routes/admin/classes'
 import { Route as AdminFeesRouteImport } from './routes/admin/fees'
 import { Route as AdminRegisterRouteImport } from './routes/admin/register'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminStaffRolesRouteImport } from './routes/admin/staff-roles'
 import { Route as LoginIndexRouteImport } from './routes/login.index'
 import { Route as LoginAdminRouteImport } from './routes/login.admin'
 import { Route as LoginParentRouteImport } from './routes/login.parent'
@@ -32,6 +33,7 @@ import { Route as ParentIndexRouteImport } from './routes/parent/index'
 import { Route as StaffIndexRouteImport } from './routes/staff/index'
 import { Route as StaffSectionRouteImport } from './routes/staff/$section'
 import { Route as StaffAttendanceRouteImport } from './routes/staff/attendance'
+import { Route as StaffLeaveRouteImport } from './routes/staff/leave'
 import { Route as StaffMarksRouteImport } from './routes/staff/marks'
 import { Route as StudentIndexRouteImport } from './routes/student/index'
 
@@ -105,6 +107,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/admin/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminStaffRolesRoute = AdminStaffRolesRouteImport.update({
+  id: '/admin/staff-roles',
+  path: '/admin/staff-roles',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginIndexRoute = LoginIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -150,6 +157,11 @@ const StaffAttendanceRoute = StaffAttendanceRouteImport.update({
   path: '/staff/attendance',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StaffLeaveRoute = StaffLeaveRouteImport.update({
+  id: '/staff/leave',
+  path: '/staff/leave',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StaffMarksRoute = StaffMarksRouteImport.update({
   id: '/staff/marks',
   path: '/staff/marks',
@@ -175,12 +187,14 @@ export interface FileRoutesByFullPath {
   '/admin/fees': typeof AdminFeesRoute
   '/admin/register': typeof AdminRegisterRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/staff-roles': typeof AdminStaffRolesRoute
   '/login/admin': typeof LoginAdminRoute
   '/login/parent': typeof LoginParentRoute
   '/login/staff': typeof LoginStaffRoute
   '/login/student': typeof LoginStudentRoute
   '/staff/$section': typeof StaffSectionRoute
   '/staff/attendance': typeof StaffAttendanceRoute
+  '/staff/leave': typeof StaffLeaveRoute
   '/staff/marks': typeof StaffMarksRoute
   '/admin/': typeof AdminIndexRoute
   '/login/': typeof LoginIndexRoute
@@ -201,12 +215,14 @@ export interface FileRoutesByTo {
   '/admin/fees': typeof AdminFeesRoute
   '/admin/register': typeof AdminRegisterRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/staff-roles': typeof AdminStaffRolesRoute
   '/login/admin': typeof LoginAdminRoute
   '/login/parent': typeof LoginParentRoute
   '/login/staff': typeof LoginStaffRoute
   '/login/student': typeof LoginStudentRoute
   '/staff/$section': typeof StaffSectionRoute
   '/staff/attendance': typeof StaffAttendanceRoute
+  '/staff/leave': typeof StaffLeaveRoute
   '/staff/marks': typeof StaffMarksRoute
   '/admin': typeof AdminIndexRoute
   '/login': typeof LoginIndexRoute
@@ -229,12 +245,14 @@ export interface FileRoutesById {
   '/admin/fees': typeof AdminFeesRoute
   '/admin/register': typeof AdminRegisterRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/staff-roles': typeof AdminStaffRolesRoute
   '/login/admin': typeof LoginAdminRoute
   '/login/parent': typeof LoginParentRoute
   '/login/staff': typeof LoginStaffRoute
   '/login/student': typeof LoginStudentRoute
   '/staff/$section': typeof StaffSectionRoute
   '/staff/attendance': typeof StaffAttendanceRoute
+  '/staff/leave': typeof StaffLeaveRoute
   '/staff/marks': typeof StaffMarksRoute
   '/admin/': typeof AdminIndexRoute
   '/login/': typeof LoginIndexRoute
@@ -258,12 +276,14 @@ export interface FileRouteTypes {
     | '/admin/fees'
     | '/admin/register'
     | '/admin/settings'
+    | '/admin/staff-roles'
     | '/login/admin'
     | '/login/parent'
     | '/login/staff'
     | '/login/student'
     | '/staff/$section'
     | '/staff/attendance'
+    | '/staff/leave'
     | '/staff/marks'
     | '/admin/'
     | '/login/'
@@ -284,12 +304,14 @@ export interface FileRouteTypes {
     | '/admin/fees'
     | '/admin/register'
     | '/admin/settings'
+    | '/admin/staff-roles'
     | '/login/admin'
     | '/login/parent'
     | '/login/staff'
     | '/login/student'
     | '/staff/$section'
     | '/staff/attendance'
+    | '/staff/leave'
     | '/staff/marks'
     | '/admin'
     | '/login'
@@ -311,12 +333,14 @@ export interface FileRouteTypes {
     | '/admin/fees'
     | '/admin/register'
     | '/admin/settings'
+    | '/admin/staff-roles'
     | '/login/admin'
     | '/login/parent'
     | '/login/staff'
     | '/login/student'
     | '/staff/$section'
     | '/staff/attendance'
+    | '/staff/leave'
     | '/staff/marks'
     | '/admin/'
     | '/login/'
@@ -339,8 +363,10 @@ export interface RootRouteChildren {
   AdminFeesRoute: typeof AdminFeesRoute
   AdminRegisterRoute: typeof AdminRegisterRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminStaffRolesRoute: typeof AdminStaffRolesRoute
   StaffSectionRoute: typeof StaffSectionRoute
   StaffAttendanceRoute: typeof StaffAttendanceRoute
+  StaffLeaveRoute: typeof StaffLeaveRoute
   StaffMarksRoute: typeof StaffMarksRoute
   AdminIndexRoute: typeof AdminIndexRoute
   ParentIndexRoute: typeof ParentIndexRoute
@@ -448,6 +474,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/staff-roles': {
+      id: '/admin/staff-roles'
+      path: '/admin/staff-roles'
+      fullPath: '/admin/staff-roles'
+      preLoaderRoute: typeof AdminStaffRolesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login/': {
       id: '/login/'
       path: '/'
@@ -511,6 +544,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffAttendanceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/staff/leave': {
+      id: '/staff/leave'
+      path: '/staff/leave'
+      fullPath: '/staff/leave'
+      preLoaderRoute: typeof StaffLeaveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/staff/marks': {
       id: '/staff/marks'
       path: '/staff/marks'
@@ -560,8 +600,10 @@ const rootRouteChildren: RootRouteChildren = {
   AdminFeesRoute: AdminFeesRoute,
   AdminRegisterRoute: AdminRegisterRoute,
   AdminSettingsRoute: AdminSettingsRoute,
+  AdminStaffRolesRoute: AdminStaffRolesRoute,
   StaffSectionRoute: StaffSectionRoute,
   StaffAttendanceRoute: StaffAttendanceRoute,
+  StaffLeaveRoute: StaffLeaveRoute,
   StaffMarksRoute: StaffMarksRoute,
   AdminIndexRoute: AdminIndexRoute,
   ParentIndexRoute: ParentIndexRoute,

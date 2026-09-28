@@ -8,7 +8,7 @@ export type Gender = "Male" | "Female";
 export type AttendanceStatus = "Present" | "Absent" | "Late";
 export type EmploymentType = "Full-time" | "Part-time" | "Contract";
 export type StaffCategory = "Teacher" | "Support";
-export type TeacherEmployment = "TSC" | "BOM" | "PTA";
+export type TeacherEmployment = "TSC" | "BOM" | "PTA" | "Casual";
 export type SupportDepartment =
   | "Administration"
   | "Accounts"
@@ -147,6 +147,25 @@ export interface LeaveRequest {
   requestedAt: string;
 }
 
+/** Optional additional teacher <-> class link (subject teacher, co-teacher),
+ * separate from the single required "class teacher" on SchoolClass.teacherId. */
+export interface ClassTeacherAssignment {
+  id: string;
+  classId: string;
+  staffId: string;
+  note?: string | null;
+}
+
+/** A rotating role assigned to a staff member for a given week, e.g.
+ * "Teacher on duty". Admin-assigned only. */
+export interface DutyRole {
+  id: string;
+  staffId: string;
+  roleName: string;
+  weekStart: string;
+  notes?: string | null;
+}
+
 export interface Activity {
   id: string;
   at: string;
@@ -178,6 +197,8 @@ export interface SchoolData {
   grades: GradeRecord[];
   payments: Payment[];
   leave: LeaveRequest[];
+  classTeachers: ClassTeacherAssignment[];
+  dutyRoles: DutyRole[];
   activity: Activity[];
   settings: Settings;
 }
